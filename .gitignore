@@ -1,0 +1,12 @@
+build/
+packages
+pubspec.lock
+.idea/
+docs/
+dartdoc-viewer/
+.project
+.settings
+.buildlog
+.pub
+out/
+*.iml
