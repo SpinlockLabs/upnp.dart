@@ -1,5 +1,5 @@
 name: ssdp
 description: Client for Simple Service Discovery Protocol
 version: 1.0.0
-homepage: git@github.com:DirectMyFile/ssdp.dart.git
+homepage: https://github.com/DirectMyFile/ssdp.dart
 author: Kenneth Endfinger <kaendfinger@gmail.com>
