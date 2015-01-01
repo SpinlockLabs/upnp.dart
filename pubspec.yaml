@@ -3,3 +3,7 @@ description: Client for Simple Service Discovery Protocol
 version: 1.0.0
 homepage: https://github.com/DirectMyFile/ssdp.dart
 author: Kenneth Endfinger <kaendfinger@gmail.com>
+dependencies:
+  xml: ">=2.2.1 <3.0.0"
+  http: ">=0.11.1 <0.12.0"
+  quiver: ">=0.20.0 <0.21.0"
