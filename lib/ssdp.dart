@@ -17,3 +17,4 @@ part "src/discovery.dart";
 part "src/service.dart";
 part "src/device.dart";
 part "src/action.dart";
+part "src/helpers.dart";

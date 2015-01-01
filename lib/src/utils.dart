@@ -14,5 +14,9 @@ class XmlUtils {
     }
     return elements.first.text;
   }
+  
+  static String unescape(String input) {
+    return input.replaceAll("&gt;", ">").replaceAll("&lt;", "<");
+  }
 }
 

@@ -37,9 +37,9 @@ void main() {
           continue;
         }
         
-        print("  - Control URL: ${service.controlUrl}");
         print("  - Type: ${service.type}");
         print("  - ID: ${service.id}");
+        print("  - Control URL: ${service.controlUrl}");
         
         if (service is Service) {
           if (service.actions.isNotEmpty) {
