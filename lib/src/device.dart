@@ -21,6 +21,11 @@ class Device {
       urlBase = uri.origin;
     }
     
+    
+    if (document.findElements("device").isEmpty) {
+      throw new Exception("ERROR: Invalid Device XML!\n\n${doc}");
+    }
+    
     var deviceNode = XmlUtils.getElementByName(document, "device");
     
     deviceType = XmlUtils.getTextSafe(deviceNode, "deviceType");
