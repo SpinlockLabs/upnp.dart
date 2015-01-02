@@ -96,6 +96,10 @@ class DeviceDiscoverer {
   
   Future<List<DiscoveredDevice>> discoverDevices({String type, Duration timeout: const Duration(seconds: 3)}) {
     return discoverClients(timeout: timeout).then((clients) {
+      if (clients.isEmpty) {
+        return [];
+      }
+      
       var uuids = clients.map((client) => client.usn.substring("uuid:".length).split("::").first).toSet();
       var devices = [];
       

@@ -29,7 +29,9 @@ class Device {
     manufacturer = XmlUtils.getTextSafe(deviceNode, "manufacturer");
     udn = XmlUtils.getTextSafe(deviceNode, "UDN");
     
-    uuid = udn.substring("uuid:".length);
+    if (udn != null) {
+      uuid = udn.substring("uuid:".length);
+    }
     
     if (deviceNode.findElements("iconList").isNotEmpty) {
       var iconList = deviceNode.findElements("iconList").first;
