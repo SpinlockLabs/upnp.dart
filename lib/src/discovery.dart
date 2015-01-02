@@ -136,7 +136,7 @@ class DeviceDiscoverer {
     var group = new FutureGroup();
     discoverDevices(type: type, timeout: timeout).then((results) {
       for (var result in results) {
-        group.add(result.getDeviceDescription());
+        group.add(result.getRealDevice());
       }
     });
     return group.future;
@@ -148,7 +148,7 @@ class DiscoveredDevice {
   String uuid;
   String location;
 
-  Future<Device> getDeviceDescription() {
+  Future<Device> getRealDevice() {
     return http.get(location).then((response) {
       if (response.statusCode != 200) {
         throw new Exception("ERROR: Failed to fetch device description. Status Code: ${response.statusCode}");
@@ -183,7 +183,7 @@ class DiscoveredClient {
     return buff.toString();
   }
   
-  Future<Device> getDeviceDescription() {
+  Future<Device> getDevice() {
     return http.get(location).then((response) {
       if (response.statusCode != 200) {
         throw new Exception("ERROR: Failed to fetch device description. Status Code: ${response.statusCode}");
