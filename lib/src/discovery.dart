@@ -105,15 +105,25 @@ class DeviceDiscoverer {
       
       for (var uuid in uuids) {
         var deviceClients = clients.where((client) {
-          return client != null && client.usn.substring("uuid:".length).split("::").first == uuid;
+          return client != null && client.usn != null && client.usn.substring("uuid:".length).split("::").first == uuid;
         }).toList();
         var location = deviceClients.first.location;
         var serviceTypes = deviceClients.map((it) => it.st).toSet().toList();
         var device = new DiscoveredDevice();
-        device.servicesTypes = serviceTypes;
+        device.serviceTypes = serviceTypes;
         device.uuid = uuid;
         device.location = location;
         if (type == null || serviceTypes.contains(type)) {
+          devices.add(device);
+        }
+      }
+      
+      for (var client in clients.where((it) => it.usn == null)) {
+        var device = new DiscoveredDevice();
+        device.serviceTypes = [client.st];
+        device.uuid = null;
+        device.location = client.location;
+        if (type == null || device.serviceTypes.contains(type)) {
           devices.add(device);
         }
       }
@@ -134,7 +144,7 @@ class DeviceDiscoverer {
 }
 
 class DiscoveredDevice {
-  List<String> servicesTypes = [];
+  List<String> serviceTypes = [];
   String uuid;
   String location;
 
