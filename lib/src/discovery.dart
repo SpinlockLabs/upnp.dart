@@ -104,7 +104,9 @@ class DeviceDiscoverer {
       var devices = [];
       
       for (var uuid in uuids) {
-        var deviceClients = clients.where((client) => client.usn.substring("uuid:".length).split("::").first == uuid).toList();
+        var deviceClients = clients.where((client) {
+          return client != null && client.usn.substring("uuid:".length).split("::").first == uuid;
+        }).toList();
         var location = deviceClients.first.location;
         var serviceTypes = deviceClients.map((it) => it.st).toSet().toList();
         var device = new DiscoveredDevice();
