@@ -60,7 +60,7 @@ class DeviceDiscoverer {
   
   Stream<DiscoveredClient> get clients => _clientController.stream;
   
-  void search([String searchTarget = "ssdp:all"]) {
+  void search([String searchTarget = "upnp:rootdevice"]) {
     var buff = new StringBuffer();
     
     buff.write("M-SEARCH * HTTP/1.1\r\n");
