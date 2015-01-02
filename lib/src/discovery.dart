@@ -100,7 +100,7 @@ class DeviceDiscoverer {
         return [];
       }
       
-      var uuids = clients.map((client) => client.usn.substring("uuid:".length).split("::").first).toSet();
+      var uuids = clients.where((client) => client.usn != null).map((client) => client.usn.substring("uuid:".length).split("::").first).toSet();
       var devices = [];
       
       for (var uuid in uuids) {
