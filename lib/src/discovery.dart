@@ -30,7 +30,11 @@ class DeviceDiscoverer {
                 var hp = part.split(": ");
                 var name = hp[0];
                 var value = (hp..removeAt(0)).join(": ").trim();
-                headers[name] = value;
+                headers[name.toUpperCase()] = value;
+              }
+              
+              if (!headers.containsKey("LOCATION")) {
+                return;
               }
               
               client.st = headers["ST"];
