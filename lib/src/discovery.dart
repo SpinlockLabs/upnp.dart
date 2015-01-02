@@ -96,12 +96,7 @@ class DeviceDiscoverer {
   
   Future<List<DiscoveredDevice>> discoverDevices({String type, Duration timeout: const Duration(seconds: 3)}) {
     return discoverClients(timeout: timeout).then((clients) {
-      try {
-        var uuids = clients.map((client) => client.usn.substring("uuid:".length).split("::").first).toSet();
-      } on NoSuchMethodError catch (e) {
-        print("No devices found");
-        exit(1);
-      }
+      var uuids = clients.map((client) => client.usn.substring("uuid:".length).split("::").first).toSet();
       var devices = [];
       
       for (var uuid in uuids) {
