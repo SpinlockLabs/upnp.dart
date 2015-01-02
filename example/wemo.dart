@@ -1,11 +1,10 @@
-import "dart:async";
 import "package:upnp/upnp.dart";
 
 void main() {
   var discover = new DeviceDiscoverer();
 
-  discover.getDevices(type: CommonDevices.WEMO).then((devices) {
-    return devices.where((it) => it.modelName == "Socket");
+  discover.getDevices().then((devices) {
+    return devices.where((it) => it.modelName.trim() == "Socket");
   }).then((devices) {
     for (var device in devices) {
       Service service;

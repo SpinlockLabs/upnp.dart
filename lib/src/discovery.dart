@@ -60,7 +60,7 @@ class DeviceDiscoverer {
   
   Stream<DiscoveredClient> get clients => _clientController.stream;
   
-  void search([String searchTarget = "upnp:rootdevice"]) {
+  void search([String searchTarget = "ssdp:all"]) {
     var buff = new StringBuffer();
     
     buff.write("M-SEARCH * HTTP/1.1\r\n");
@@ -140,10 +140,18 @@ class DeviceDiscoverer {
     var group = new FutureGroup();
     discoverDevices(type: type, timeout: timeout).then((results) {
       for (var result in results) {
-        group.add(result.getRealDevice());
+        group.add(result.getRealDevice().catchError((e) {
+          if (e is ArgumentError) {
+            return null;
+          } else {
+            throw e;
+          }
+        }));
       }
     });
-    return group.future;
+    return group.future.then((list) {
+      return list.where((it) => it != null).toList();
+    });
   }
 }
 
@@ -164,6 +172,10 @@ class DiscoveredDevice {
         doc = xml.parse(response.body);
       } on Exception catch (e) {
         throw new FormatException("ERROR: Failed to parse device description. ${e}");
+      }
+      
+      if (doc.findAllElements("device").isEmpty) {
+        throw new ArgumentError("Not SCPD Compatible");
       }
       
       return new Device.fromXml(location, doc);
