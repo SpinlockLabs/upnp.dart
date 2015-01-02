@@ -98,26 +98,26 @@ class DeviceDiscoverer {
     return discoverClients(timeout: timeout).then((clients) {
       try {
         var uuids = clients.map((client) => client.usn.substring("uuid:".length).split("::").first).toSet();
-        var devices = [];
-        
-        for (var uuid in uuids) {
-          var deviceClients = clients.where((client) => client.usn.substring("uuid:".length).split("::").first == uuid).toList();
-          var location = deviceClients.first.location;
-          var serviceTypes = deviceClients.map((it) => it.st).toSet().toList();
-          var device = new DiscoveredDevice();
-          device.servicesTypes = serviceTypes;
-          device.uuid = uuid;
-          device.location = location;
-          if (type == null || serviceTypes.contains(type)) {
-            devices.add(device);
-          }
-        }
-        
-        return devices;
       } on NoSuchMethodError catch (e) {
         print("No devices found");
         exit(1);
       }
+      var devices = [];
+      
+      for (var uuid in uuids) {
+        var deviceClients = clients.where((client) => client.usn.substring("uuid:".length).split("::").first == uuid).toList();
+        var location = deviceClients.first.location;
+        var serviceTypes = deviceClients.map((it) => it.st).toSet().toList();
+        var device = new DiscoveredDevice();
+        device.servicesTypes = serviceTypes;
+        device.uuid = uuid;
+        device.location = location;
+        if (type == null || serviceTypes.contains(type)) {
+          devices.add(device);
+        }
+      }
+      
+      return devices;
     });
   }
   
