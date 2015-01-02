@@ -1,4 +1,4 @@
-import "package:ssdp/ssdp.dart";
+import "package:upnp/upnp.dart";
 
 void main() {
   var discover = new DeviceDiscoverer();

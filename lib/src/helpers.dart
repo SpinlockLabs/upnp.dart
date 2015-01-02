@@ -1,4 +1,4 @@
-part of ssdp;
+part of upnp;
 
 class WemoHelper {
   static Map<String, dynamic> parseAttributes(String input) {

@@ -1,4 +1,4 @@
-library ssdp.utils;
+library upnp.utils;
 
 import "package:xml/xml.dart" hide parse;
 

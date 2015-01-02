@@ -1,5 +1,5 @@
-import "package:ssdp/ssdp.dart";
 import "dart:async";
+import "package:upnp/upnp.dart";
 
 void main() {
   var discover = new DeviceDiscoverer();

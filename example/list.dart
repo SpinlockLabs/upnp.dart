@@ -1,4 +1,4 @@
-import "package:ssdp/ssdp.dart";
+import "package:upnp/upnp.dart";
 import "package:quiver/async.dart";
 
 void main() {

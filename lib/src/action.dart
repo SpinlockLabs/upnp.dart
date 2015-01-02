@@ -1,4 +1,4 @@
-part of ssdp;
+part of upnp;
 
 class Action {
   Service service;

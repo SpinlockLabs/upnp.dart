@@ -1,4 +1,4 @@
-library ssdp;
+library upnp;
 
 import "dart:async";
 import "dart:convert";

@@ -1,4 +1,4 @@
-part of ssdp;
+part of upnp;
 
 class DeviceDiscoverer {
   RawDatagramSocket _socket;
