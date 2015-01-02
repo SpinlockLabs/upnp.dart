@@ -22,7 +22,7 @@ class DeviceDiscoverer {
             var parts = data.split("\r\n");
             var firstLine = parts.removeAt(0);
             
-            if (firstLine.trim() == "HTTP/1.1 200 OK") {
+            if (firstLine.toLowerCase().trim() == "HTTP/1.1 200 OK".toLowerCase()) {
               var headers = {};
               var client =  new DiscoveredClient();
               
