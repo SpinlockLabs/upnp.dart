@@ -11,14 +11,7 @@ void main() {
       Service service;
       device.getService("urn:Belkin:service:basicevent:1").then((_) {
         service = _;
-        var future = new Future.value();
-        for (var i = 0; i < 7; i++) {
-          future = future.then((_) {
-            return new Future.delayed(new Duration(seconds: 2), () {
-              toggle(service);
-            });
-          });
-        }
+        toggle(service);
       });
     }
   });
