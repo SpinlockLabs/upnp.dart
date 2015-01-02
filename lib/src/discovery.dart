@@ -66,13 +66,13 @@ class DeviceDiscoverer {
     buff.write("M-SEARCH * HTTP/1.1\r\n");
     buff.write("HOST: 239.255.255.250:1900\r\n");
     buff.write('MAN: "ssdp:discover"\r\n');
-    buff.write("MX: 5\r\n");
+    buff.write("MX: 3\r\n");
     buff.write("ST: ${searchTarget}\r\n\r\n");
     var data = UTF8.encode(buff.toString());
     _socket.send(data, new InternetAddress("239.255.255.250"), 1900);
   }
   
-  Future<List<DiscoveredClient>> discoverClients({Duration timeout: const Duration(seconds: 3)}) {
+  Future<List<DiscoveredClient>> discoverClients({Duration timeout: const Duration(seconds: 5)}) {
     var completer = new Completer();
     StreamSubscription sub;
     var list = [];
@@ -98,7 +98,7 @@ class DeviceDiscoverer {
     return completer.future;
   }
   
-  Future<List<DiscoveredDevice>> discoverDevices({String type, Duration timeout: const Duration(seconds: 3)}) {
+  Future<List<DiscoveredDevice>> discoverDevices({String type, Duration timeout: const Duration(seconds: 5)}) {
     return discoverClients(timeout: timeout).then((clients) {
       if (clients.isEmpty) {
         return [];
@@ -136,7 +136,7 @@ class DeviceDiscoverer {
     });
   }
   
-  Future<List<Device>> getDevices({String type, Duration timeout: const Duration(seconds: 3)}) {
+  Future<List<Device>> getDevices({String type, Duration timeout: const Duration(seconds: 5)}) {
     var group = new FutureGroup();
     discoverDevices(type: type, timeout: timeout).then((results) {
       for (var result in results) {
