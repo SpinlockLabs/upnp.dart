@@ -8,36 +8,36 @@ class Device {
   String modelName;
   String udn;
   String uuid;
+  String url;
   List<Icon> icons = [];
   List<ServiceDescription> services = [];
-  
-  Device.fromXml(String url, XmlDocument doc) {
+
+  Device.fromXml(this.url, XmlDocument doc) {
     var uri = Uri.parse(url);
     var document = doc.rootElement;
-    
+
     urlBase = XmlUtils.getTextSafe(document, "URLBase");
-    
+
     if (urlBase == null) {
       urlBase = uri.origin;
     }
-    
-    
+
     if (document.findElements("device").isEmpty) {
       throw new Exception("ERROR: Invalid Device XML!\n\n${doc}");
     }
-    
+
     var deviceNode = XmlUtils.getElementByName(document, "device");
-    
+
     deviceType = XmlUtils.getTextSafe(deviceNode, "deviceType");
     friendlyName = XmlUtils.getTextSafe(deviceNode, "friendlyName");
     modelName = XmlUtils.getTextSafe(deviceNode, "modelName");
     manufacturer = XmlUtils.getTextSafe(deviceNode, "manufacturer");
     udn = XmlUtils.getTextSafe(deviceNode, "UDN");
-    
+
     if (udn != null) {
       uuid = udn.substring("uuid:".length);
     }
-    
+
     if (deviceNode.findElements("iconList").isNotEmpty) {
       var iconList = deviceNode.findElements("iconList").first;
       for (var child in iconList.children) {
@@ -51,22 +51,22 @@ class Device {
           if (width != null) {
             icon.width = int.parse(width);
           }
-          
+
           if (height != null) {
             icon.height = int.parse(height);
           }
-          
+
           if (depth != null) {
             icon.depth = int.parse(depth);
           }
-          
+
           icon.url;
-          
+
           icons.add(icon);
         }
       }
     }
-    
+
     if (deviceNode.findElements("serviceList").isNotEmpty) {
       var list = deviceNode.findElements("serviceList").first;
       for (var e in list.children) {
@@ -76,7 +76,7 @@ class Device {
       }
     }
   }
-  
+
   Future<Service> getService(String type) {
     return services.firstWhere((it) => it.type == type).getService();
   }
