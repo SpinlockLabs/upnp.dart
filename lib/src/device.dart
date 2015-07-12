@@ -60,7 +60,7 @@ class Device {
             icon.depth = int.parse(depth);
           }
 
-          icon.url;
+          icon.url = url;
 
           icons.add(icon);
         }
