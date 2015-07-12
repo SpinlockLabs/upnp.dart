@@ -92,5 +92,5 @@ class Icon {
 
 class CommonDevices {
   static const String CHROMECAST = "urn:dial-multiscreen-org:service:dial:1";
-  static const String WEMO = "urn:Belkin:service:basicevent:1";
+  static const String WEMO = "urn:Belkin:device:controllee:1";
 }

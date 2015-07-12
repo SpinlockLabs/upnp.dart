@@ -2,12 +2,12 @@ part of upnp;
 
 class DeviceDiscoverer {
   RawDatagramSocket _socket;
-  StreamController<DiscoveredClient> _clientController = new StreamController.broadcast();
+  StreamController<DiscoveredClient> _clientController = new StreamController.broadcast(sync: true);
+  NetworkInterface interface;
 
   Future start() {
-    return RawDatagramSocket.bind("0.0.0.0", 1901).then((socket) {
+    return RawDatagramSocket.bind("0.0.0.0", 0).then((socket) {
       _socket = socket;
-      socket.multicastHops = 10;
       socket.listen((event) {
         switch (event) {
           case RawSocketEvent.READ:
@@ -20,16 +20,17 @@ class DeviceDiscoverer {
 
             var data = UTF8.decode(packet.data);
             var parts = data.split("\r\n");
+            parts.removeWhere((x) => x.trim().isEmpty);
             var firstLine = parts.removeAt(0);
-
+            
             if (firstLine.toLowerCase().trim() == "HTTP/1.1 200 OK".toLowerCase()) {
               var headers = {};
               var client =  new DiscoveredClient();
 
               for (var part in parts) {
-                var hp = part.split(": ");
-                var name = hp[0];
-                var value = (hp..removeAt(0)).join(": ").trim();
+                var hp = part.split(":");
+                var name = hp[0].trim();
+                var value = (hp..removeAt(0)).join(":").trim();
                 headers[name.toUpperCase()] = value;
               }
 
@@ -50,7 +51,7 @@ class DeviceDiscoverer {
         }
       });
 
-      socket.joinMulticast(new InternetAddress("239.255.255.250"));
+      socket.joinMulticast(new InternetAddress("239.255.255.250"), interface);
     });
   }
 
@@ -60,14 +61,15 @@ class DeviceDiscoverer {
 
   Stream<DiscoveredClient> get clients => _clientController.stream;
 
-  void search([String searchTarget = "ssdp:all"]) {
+  void search([String searchTarget = "upnp:rootdevice"]) {
     var buff = new StringBuffer();
 
     buff.write("M-SEARCH * HTTP/1.1\r\n");
-    buff.write("HOST: 239.255.255.250:1900\r\n");
-    buff.write('MAN: "ssdp:discover"\r\n');
-    buff.write("MX: 3\r\n");
-    buff.write("ST: ${searchTarget}\r\n\r\n");
+    buff.write("HOST:239.255.255.250:1900\r\n");
+    buff.write('MAN:"ssdp:discover"\r\n');
+    buff.write("MX:1\r\n");
+    buff.write("ST:${searchTarget}\r\n");
+    buff.write("USER-AGENT:unix/5.1 UPnP/1.1 crash/1.0\r\n\r\n");
     var data = UTF8.encode(buff.toString());
     _socket.send(data, new InternetAddress("239.255.255.250"), 1900);
   }
@@ -104,12 +106,12 @@ class DeviceDiscoverer {
         return [];
       }
 
-      var uuids = clients.where((client) => client.usn != null).map((client) => client.usn.substring("uuid:".length).split("::").first).toSet();
+      var uuids = clients.where((client) => client.usn != null).map((client) => client.usn.split("::").first).toSet();
       var devices = [];
 
       for (var uuid in uuids) {
         var deviceClients = clients.where((client) {
-          return client != null && client.usn != null && client.usn.substring("uuid:".length).split("::").first == uuid;
+          return client != null && client.usn != null && client.usn.split("::").first == uuid;
         }).toList();
         var location = deviceClients.first.location;
         var serviceTypes = deviceClients.map((it) => it.st).toSet().toList();

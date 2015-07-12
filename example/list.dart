@@ -4,7 +4,7 @@ import "package:quiver/async.dart";
 void main() {
   var discoverer = new DeviceDiscoverer();
 
-  discoverer.getDevices().then((devices) {
+  discoverer.getDevices(timeout: new Duration(seconds: 20)).then((devices) {
     var allGroup = new FutureGroup();
 
     for (var device in devices) {
