@@ -1,6 +1,7 @@
 library upnp.utils;
 
 import "package:xml/xml.dart" hide parse;
+import "package:http/http.dart" as http;
 
 class XmlUtils {
   static XmlElement getElementByName(XmlBranch node, String name) {
