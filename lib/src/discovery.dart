@@ -22,7 +22,7 @@ class DeviceDiscoverer {
             var parts = data.split("\r\n");
             parts.removeWhere((x) => x.trim().isEmpty);
             var firstLine = parts.removeAt(0);
-            
+
             if (firstLine.toLowerCase().trim() == "HTTP/1.1 200 OK".toLowerCase()) {
               var headers = {};
               var client =  new DiscoveredClient();
@@ -164,7 +164,7 @@ class DiscoveredDevice {
   String location;
 
   Future<Device> getRealDevice() {
-    return http.get(location).then((response) {
+    return UpnpCommon.httpClient.get(location).then((response) {
       if (response.statusCode != 200) {
         throw new Exception("ERROR: Failed to fetch device description. Status Code: ${response.statusCode}");
       }
@@ -205,7 +205,7 @@ class DiscoveredClient {
   }
 
   Future<Device> getDevice() {
-    return http.get(location).then((response) {
+    return UpnpCommon.httpClient.get(location).then((response) {
       if (response.statusCode != 200) {
         throw new Exception("ERROR: Failed to fetch device description. Status Code: ${response.statusCode}");
       }

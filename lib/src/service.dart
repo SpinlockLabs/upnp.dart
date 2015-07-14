@@ -28,20 +28,20 @@ class ServiceDescription {
       scpdUrl = urlBase + m;
     }
   }
-  
+
   Future<Service> getService() {
     if (scpdUrl == null) {
       throw new Exception("Unable to fetch service, no SCPD URL.");
     }
-    
-    return http.get(scpdUrl).then((response) {
+
+    return UpnpCommon.httpClient.get(scpdUrl).then((response) {
       if (response.statusCode != 200) {
         throw new Exception("Failed to fetch service!");
       }
       var doc = xml.parse(response.body.replaceAll("ï»¿", "")).rootElement;
       var actionList = doc.findElements("actionList");
       var acts = [];
-      
+
       if (actionList.isNotEmpty) {
         for (var e in actionList.first.children) {
           if (e is XmlElement) {
@@ -49,7 +49,7 @@ class ServiceDescription {
           }
         }
       }
-      
+
       var service = new Service(type, id, controlUrl, eventSubUrl, scpdUrl, acts);
       for (var act in acts) {
         act.service = service;
@@ -71,8 +71,8 @@ class Service {
 
   Future<String> sendToControlUrl(String name, String param) {
     var body = _SOAP_BODY.replaceAll("{param}", param);
-    
-    return http.post(controlUrl, body: body, headers: {
+
+    return UpnpCommon.httpClient.post(controlUrl, body: body, headers: {
       "SOAPACTION": '"${type}#${name}"',
       "Content-Type": 'text/xml; charset="utf-8"',
       "User-Agent": 'CyberGarage-HTTP/1.0'
@@ -84,8 +84,9 @@ class Service {
       }
     });
   }
-  
+
   Future<Map<String, String>> invokeAction(String name, Map<String, dynamic> args) {
     return actions.firstWhere((it) => it.name == name).invoke(args);
   }
 }
+
