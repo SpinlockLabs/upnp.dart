@@ -3,10 +3,9 @@ part of upnp;
 class DeviceDiscoverer {
   RawDatagramSocket _socket;
   StreamController<DiscoveredClient> _clientController = new StreamController.broadcast(sync: true);
-  NetworkInterface interface;
 
   Future start() {
-    return RawDatagramSocket.bind("0.0.0.0", 0).then((socket) {
+    return RawDatagramSocket.bind("0.0.0.0", 0).then((socket) async {
       _socket = socket;
       socket.listen((event) {
         switch (event) {
@@ -51,7 +50,10 @@ class DeviceDiscoverer {
         }
       });
 
-      socket.joinMulticast(new InternetAddress("239.255.255.250"), interface);
+      var interfaces = await NetworkInterface.list();
+      for (var interface in interfaces) {
+        socket.joinMulticast(new InternetAddress("239.255.255.250"), interface);
+      }
     });
   }
 
