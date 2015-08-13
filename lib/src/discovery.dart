@@ -52,7 +52,13 @@ class DeviceDiscoverer {
 
       var interfaces = await NetworkInterface.list();
       for (var interface in interfaces) {
-        socket.joinMulticast(new InternetAddress("239.255.255.250"), interface);
+        try {
+          socket.joinMulticast(new InternetAddress("239.255.255.250"), interface);
+        } catch (e) {
+          try {
+            socket.joinMulticast(new InternetAddress("239.255.255.250"), interface: interface);
+          } catch (e) {}
+        }
       }
     });
   }
@@ -184,7 +190,7 @@ class DiscoveredDevice {
       }
 
       return new Device.fromXml(location, doc);
-    }).timeout(new Duration(seconds: 3), onTimeout: () {
+    }).timeout(const Duration(seconds: 3), onTimeout: () {
       return null;
     });
   }
