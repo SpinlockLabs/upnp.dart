@@ -60,9 +60,9 @@ class ServiceDescription {
 }
 
 class Service {
-  final String controlUrl;
-  final String eventSubUrl;
-  final String scpdUrl;
+  String controlUrl;
+  String eventSubUrl;
+  String scpdUrl;
   final String type;
   final String id;
   final List<Action> actions;
