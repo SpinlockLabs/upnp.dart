@@ -4,11 +4,11 @@ import "package:xml/xml.dart" hide parse;
 import "package:http/http.dart" as http;
 
 class XmlUtils {
-  static XmlElement getElementByName(XmlBranch node, String name) {
+  static XmlElement getElementByName(XmlElement node, String name) {
     return node.findElements(name).first;
   }
 
-  static String getTextSafe(XmlBranch node, String name) {
+  static String getTextSafe(XmlElement node, String name) {
     var elements = node.findElements(name);
     if (elements.isEmpty) {
       return null;

@@ -1,64 +1,52 @@
 import "package:upnp/upnp.dart";
-import "package:quiver/async.dart";
+import "dart:async";
+
+Future printDevice(Device device) async {
+  print("- ${device.modelName} by ${device.manufacturer} (uuid: ${device.uuid})");
+  print("- URL: ${device.url}");
+
+  if (device.services == null) {
+    print("-----");
+    return;
+  }
+
+  for (var svc in device.services) {
+    if (svc == null) {
+      continue;
+    }
+
+    var service = await svc.getService();
+    print("  - Type: ${service.type}");
+    print("  - ID: ${service.id}");
+    print("  - Control URL: ${service.controlUrl}");
+
+    if (service is Service) {
+      if (service.actions.isNotEmpty) {
+        print("  - Actions:");
+      }
+
+      for (var action in service.actions) {
+        print("    - Name: ${action.name}");
+        print("    - Arguments: ${action.arguments.where((it) => it.direction == "in").map((it) => it.name).toList()}");
+        print("    - Results: ${action.arguments.where((it) => it.direction == "out").map((it) => it.name).toList()}");
+        print("");
+      }
+
+      if (service.actions.isEmpty) {
+        print("");
+      }
+    }
+  }
+
+  print("-----");
+}
 
 void main() {
   var discoverer = new DeviceDiscoverer();
 
-  discoverer.getDevices(timeout: new Duration(seconds: 20)).then((devices) {
-    var allGroup = new FutureGroup();
-
+  discoverer.getDevices(timeout: new Duration(seconds: 20)).then((devices) async {
     for (var device in devices) {
-      var group = new FutureGroup();
-
-      for (var service in device.services) {
-        group.add(service.getService().catchError((e) {
-          return service;
-        }));
-      }
-
-      allGroup.add(group.future.then((services) {
-        return {
-          "device": device,
-          "services": services
-        };
-      }));
-    }
-
-    return allGroup.future;
-  }).then((stuff) {
-    for (var it in stuff) {
-      Device device = it["device"];
-      var services = it["services"];
-
-      print("- ${device.modelName} by ${device.manufacturer} (uuid: ${device.uuid})");
-      print("- URL: ${device.url}");
-
-      for (var service in services) {
-        if (service == null) {
-          continue;
-        }
-
-        print("  - Type: ${service.type}");
-        print("  - ID: ${service.id}");
-        print("  - Control URL: ${service.controlUrl}");
-
-        if (service is Service) {
-          if (service.actions.isNotEmpty) {
-            print("  - Actions:");
-          }
-
-          for (var action in service.actions) {
-            print("    - Name: ${action.name}");
-            print("    - Arguments: ${action.arguments.where((it) => it.direction == "in").map((it) => it.name).toList()}");
-            print("    - Results: ${action.arguments.where((it) => it.direction == "out").map((it) => it.name).toList()}");
-            print("");
-          }
-
-          if (service.actions.isEmpty) {
-            print("");
-          }
-        }
-      }
+      await printDevice(device);
     }
   });
 }
