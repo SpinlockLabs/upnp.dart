@@ -25,37 +25,62 @@ class ServiceDescription {
     var m = XmlUtils.getTextSafe(service, "SCPDURL");
 
     if (m != null) {
-      scpdUrl = urlBase + m;
+      if (m.startsWith("http:") || m.startsWith("https:")) {
+        scpdUrl = m;
+      } else {
+        scpdUrl = urlBase + m;
+      }
     }
   }
 
-  Future<Service> getService() {
+  Future<Service> getService() async {
     if (scpdUrl == null) {
       throw new Exception("Unable to fetch service, no SCPD URL.");
     }
 
-    return UpnpCommon.httpClient.get(scpdUrl).then((response) {
-      if (response.statusCode != 200) {
-        throw new Exception("Failed to fetch service!");
-      }
-      var doc = xml.parse(response.body.replaceAll("ï»¿", "")).rootElement;
-      var actionList = doc.findElements("actionList");
-      var acts = [];
+    var response = await UpnpCommon.httpClient.get(scpdUrl)
+      .timeout(const Duration(seconds: 5), onTimeout: () => null);
 
-      if (actionList.isNotEmpty) {
-        for (var e in actionList.first.children) {
-          if (e is XmlElement) {
-            acts.add(new Action.fromXml(e));
-          }
+    if (response == null) {
+      return null;
+    }
+
+    if (response.statusCode != 200) {
+      return null;
+    }
+
+    XmlDocument doc;
+
+    try {
+      doc = xml.parse(response.body.replaceAll("ï»¿", "")).rootElement;
+    } catch (e) {
+      return null;
+    }
+
+    var actionList = doc.findElements("actionList");
+    var acts = <Action>[];
+
+    if (actionList.isNotEmpty) {
+      for (var e in actionList.first.children) {
+        if (e is XmlElement) {
+          acts.add(new Action.fromXml(e));
         }
       }
+    }
 
-      var service = new Service(type, id, controlUrl, eventSubUrl, scpdUrl, acts);
-      for (var act in acts) {
-        act.service = service;
-      }
-      return service;
-    });
+    var service = new Service(
+      type,
+      id,
+      controlUrl,
+      eventSubUrl,
+      scpdUrl,
+      acts
+    );
+
+    for (var act in acts) {
+      act.service = service;
+    }
+    return service;
   }
 }
 
@@ -67,26 +92,37 @@ class Service {
   final String id;
   final List<Action> actions;
 
-  Service(this.type, this.id, this.controlUrl, this.eventSubUrl, this.scpdUrl, this.actions);
+  Service(
+    this.type,
+    this.id,
+    this.controlUrl,
+    this.eventSubUrl,
+    this.scpdUrl,
+    this.actions);
 
-  Future<String> sendToControlUrl(String name, String param) {
+  Future<String> sendToControlUrl(String name, String param) async {
     var body = _SOAP_BODY.replaceAll("{param}", param);
 
-    return UpnpCommon.httpClient.post(controlUrl, body: body, headers: {
+    var response = await UpnpCommon.httpClient.post(
+      controlUrl,
+      body: body,
+      headers: {
       "SOAPACTION": '"${type}#${name}"',
       "Content-Type": 'text/xml; charset="utf-8"',
       "User-Agent": 'CyberGarage-HTTP/1.0'
-    }).then((response) {
-      if (response.statusCode != 200) {
-        throw new Exception("\n\n${response.body}");
-      } else {
-        return response.body;
-      }
     });
+
+    if (response.statusCode != 200) {
+      throw new Exception("\n\n${response.body}");
+    } else {
+      return response.body;
+    }
   }
 
-  Future<Map<String, String>> invokeAction(String name, Map<String, dynamic> args) {
-    return actions.firstWhere((it) => it.name == name).invoke(args);
+  Future<Map<String, String>> invokeAction(
+    String name,
+    Map<String, dynamic> args) async {
+    return await actions.firstWhere((it) => it.name == name).invoke(args);
   }
 }
 

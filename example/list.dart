@@ -16,19 +16,26 @@ Future printDevice(Device device) async {
     }
 
     var service = await svc.getService();
-    print("  - Type: ${service.type}");
-    print("  - ID: ${service.id}");
-    print("  - Control URL: ${service.controlUrl}");
 
-    if (service is Service) {
+    if (service != null) {
+      print("  - Type: ${service.type}");
+      print("  - ID: ${service.id}");
+      print("  - Control URL: ${service.controlUrl}");
+
       if (service.actions.isNotEmpty) {
         print("  - Actions:");
       }
 
       for (var action in service.actions) {
         print("    - Name: ${action.name}");
-        print("    - Arguments: ${action.arguments.where((it) => it.direction == "in").map((it) => it.name).toList()}");
-        print("    - Results: ${action.arguments.where((it) => it.direction == "out").map((it) => it.name).toList()}");
+        print("    - Arguments: ${action.arguments
+          .where((it) => it.direction == "in")
+          .map((it) => it.name)
+          .toList()}");
+        print("    - Results: ${action.arguments
+          .where((it) => it.direction == "out")
+          .map((it) => it.name)
+          .toList()}");
         print("");
       }
 
@@ -41,12 +48,16 @@ Future printDevice(Device device) async {
   print("-----");
 }
 
-void main() {
+main() async {
   var discoverer = new DeviceDiscoverer();
 
-  discoverer.getDevices(timeout: new Duration(seconds: 20)).then((devices) async {
-    for (var device in devices) {
-      await printDevice(device);
-    }
-  });
+  var devices = await discoverer
+    .getDevices(timeout: const Duration(seconds: 8));
+
+  for (var device in devices) {
+    await printDevice(device);
+  }
+
+  discoverer.stop();
+
 }

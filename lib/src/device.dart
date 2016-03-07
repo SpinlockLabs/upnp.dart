@@ -77,8 +77,8 @@ class Device {
     }
   }
 
-  Future<Service> getService(String type) {
-    return services.firstWhere((it) => it.type == type).getService();
+  Future<Service> getService(String type) async {
+    return await services.firstWhere((it) => it.type == type).getService();
   }
 }
 

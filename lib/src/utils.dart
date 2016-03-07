@@ -1,5 +1,7 @@
 library upnp.utils;
 
+import "dart:io";
+
 import "package:xml/xml.dart" hide parse;
 import "package:http/http.dart" as http;
 
@@ -22,5 +24,8 @@ class XmlUtils {
 }
 
 class UpnpCommon {
-  static http.Client httpClient = new http.Client();
+  static http.Client httpClient = new http.IOClient(
+    new HttpClient()
+      ..maxConnectionsPerHost = 10
+  );
 }
