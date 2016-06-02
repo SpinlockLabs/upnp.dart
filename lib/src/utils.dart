@@ -5,6 +5,15 @@ import "dart:io";
 import "package:xml/xml.dart" hide parse;
 import "package:http/http.dart" as http;
 
+class UpnpException {
+  final XmlElement element;
+
+  UpnpException(this.element);
+
+  @override
+  String toString() => element.toXmlString();
+}
+
 class XmlUtils {
   static XmlElement getElementByName(XmlElement node, String name) {
     return node.findElements(name).first;

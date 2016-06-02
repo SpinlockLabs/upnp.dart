@@ -128,7 +128,13 @@ class Service {
     });
 
     if (response.statusCode != 200) {
-      throw new Exception("\n\n${response.body}");
+      try {
+        var content = response.body;
+        var doc = xml.parse(content);
+        throw new UpnpException(doc.rootElement);
+      } catch (e) {
+        throw new Exception("\n\n${response.body}");
+      }
     } else {
       return response.body;
     }
