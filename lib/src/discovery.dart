@@ -281,6 +281,12 @@ class DiscoveredClient {
   String location;
   Map<String, String> headers;
 
+  DiscoveredClient();
+
+  DiscoveredClient.fake(String loc) {
+    location = loc;
+  }
+
   String toString() {
     var buff = new StringBuffer();
     buff.writeln("ST: ${st}");

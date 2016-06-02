@@ -41,10 +41,13 @@ class Action {
     }).join("\n") + '</u:${name}>\n';
 
     var result = await service.sendToControlUrl(name, param);
-    var response = xml.parse(result)
-      .rootElement
-      .firstChild
-      .firstChild;
+    var doc = xml.parse(result);
+    var response = doc
+      .rootElement;
+
+    if (response.name.local != "Body") {
+      response = response.firstChild;
+    }
 
     if (const bool.fromEnvironment("upnp.action.show_response", defaultValue: false)) {
       print("Got Action Response: ${response.toXmlString()}");
