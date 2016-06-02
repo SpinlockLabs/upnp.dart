@@ -43,11 +43,14 @@ class Action {
     var result = await service.sendToControlUrl(name, param);
     var response = xml.parse(result)
       .rootElement
-      .firstChild
       .firstChild;
 
-    if (response.children.length > 1) {
-      response = response.children[1];
+    if (response.children.length != 1) {
+      response = response.firstChild;
+
+      if (response.children.length > 1) {
+        response = response.children[1];
+      }
     }
 
     if (const bool.fromEnvironment("upnp.action.show_response", defaultValue: false)) {
