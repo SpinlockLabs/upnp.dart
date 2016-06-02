@@ -69,6 +69,10 @@ class Action {
       }
     }
 
+    if (const bool.fromEnvironment("upnp.action.show_response", defaultValue: false)) {
+      print("Got Action Response (Real): ${response.toXmlString()}");
+    }
+
     List<XmlElement> results = response.children
       .where((it) => it is XmlElement).toList();
     var map = {};
