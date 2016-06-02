@@ -118,6 +118,10 @@ class Service {
   Future<String> sendToControlUrl(String name, String param) async {
     var body = _SOAP_BODY.replaceAll("{param}", param);
 
+    if (const bool.fromEnvironment("upnp.debug.control", defaultValue: false)) {
+      print("Send to ${controlUrl} (SOAPACTION: ${type}#${name}): ${body}");
+    }
+
     var response = await UpnpCommon.httpClient.post(
       controlUrl,
       body: body,

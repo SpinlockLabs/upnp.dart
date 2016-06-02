@@ -69,7 +69,6 @@ main() async {
   await discoverer
     .quickDiscoverClients(timeout: const Duration(seconds: 8))
     .listen((DiscoveredClient client) async {
-    print(client);
     Device device;
 
     try {
