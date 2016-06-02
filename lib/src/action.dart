@@ -46,12 +46,12 @@ class Action {
       .firstChild
       .firstChild;
 
-    if (response is XmlElement && !response.name.local.contains("Response")) {
-      response = response.children[1];
-    }
-
     if (const bool.fromEnvironment("upnp.action.show_response", defaultValue: false)) {
       print("Got Action Response: ${response.toXmlString()}");
+    }
+
+    if (response is XmlElement && !response.name.local.contains("Response")) {
+      response = response.children[1];
     }
 
     List<XmlElement> results = response.children
