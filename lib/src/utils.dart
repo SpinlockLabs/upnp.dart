@@ -21,6 +21,50 @@ class XmlUtils {
   static String unescape(String input) {
     return input.replaceAll("&gt;", ">").replaceAll("&lt;", "<");
   }
+
+  static dynamic asRichValue(String value) {
+    if (value == null) {
+      return null;
+    }
+
+    if (value.toLowerCase() == "true") {
+      return true;
+    }
+
+    if (value.toLowerCase() == "false") {
+      return false;
+    }
+
+    if (value.toLowerCase() == "null") {
+      return null;
+    }
+
+    var number = num.parse(value, (_) => null);
+
+    if (number != null) {
+      return number;
+    }
+
+    return value;
+  }
+
+  static dynamic asValueType(input, String type) {
+    if (type is String) {
+      type = type.toLowerCase();
+    }
+
+    if (type == "string") {
+      return input.toString();
+    } else if (type == "number" ||
+      type == "integer" ||
+      type == "int" ||
+      type == "double" ||
+      type == "float") {
+      return num.parse(input.toString(), (e) => null);
+    } else {
+      return input.toString();
+    }
+  }
 }
 
 class UpnpCommon {

@@ -3,7 +3,10 @@ part of upnp;
 class Action {
   Service service;
   String name;
+  String relatedStateVariable;
   List<ActionArgument> arguments = [];
+
+  Action();
 
   Action.fromXml(XmlElement e) {
     name = XmlUtils.getTextSafe(e, "name");
@@ -14,14 +17,35 @@ class Action {
       for (var argdef in argList.children.where((it) => it is XmlElement)) {
         var name = XmlUtils.getTextSafe(argdef, "name");
         var direction = XmlUtils.getTextSafe(argdef, "direction");
-        var relatedStateVariable = XmlUtils.getTextSafe(argdef, "relatedStateVariable");
+        var relatedStateVariable = XmlUtils.getTextSafe(
+          argdef,
+          "relatedStateVariable"
+        );
         var isRetVal = argdef.children
           .where((it) => it is XmlElement)
           .any((child) => child.name.toString() == "retval");
 
-        arguments.add(new ActionArgument(name, direction, relatedStateVariable, isRetVal));
+        arguments.add(
+          new ActionArgument(name, direction, relatedStateVariable, isRetVal)
+        );
       }
     }
+  }
+
+  StateVariable getStateVariable() {
+    if (relatedStateVariable != null) {
+      return null;
+    }
+
+    Iterable<StateVariable> vars = service
+      .stateVariables
+      .where((x) => x.name == relatedStateVariable);
+
+    if (vars.isNotEmpty) {
+      return vars.first;
+    }
+
+    return null;
   }
 
   Future<Map<String, String>> invoke(Map<String, dynamic> args) async {
@@ -42,11 +66,32 @@ class Action {
   }
 }
 
+class StateVariable {
+  String name;
+  String dataType;
+  dynamic defaultValue;
+
+  StateVariable();
+
+  StateVariable.fromXml(XmlElement e) {
+    name = XmlUtils.getTextSafe(e, "name");
+    dataType = XmlUtils.getTextSafe(e, "dataType");
+    defaultValue = XmlUtils.asValueType(
+      XmlUtils.getTextSafe(e, "defaultValue"),
+      dataType
+    );
+  }
+}
+
 class ActionArgument {
   final String name;
   final String direction;
   final String relatedStateVariable;
   final bool isRetVal;
 
-  ActionArgument(this.name, this.direction, this.relatedStateVariable, this.isRetVal);
+  ActionArgument(
+    this.name,
+    this.direction,
+    this.relatedStateVariable,
+    this.isRetVal);
 }

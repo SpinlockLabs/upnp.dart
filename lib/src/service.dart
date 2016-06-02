@@ -52,12 +52,13 @@ class ServiceDescription {
     XmlDocument doc;
 
     try {
-      doc = xml.parse(response.body.replaceAll("ï»¿", "")).rootElement;
+      doc = xml.parse(response.body.replaceAll("ï»¿", ""));
     } catch (e) {
       return null;
     }
 
     var actionList = doc.findElements("actionList");
+    var varList = doc.findElements("serviceStateTable");
     var acts = <Action>[];
 
     if (actionList.isNotEmpty) {
@@ -68,13 +69,24 @@ class ServiceDescription {
       }
     }
 
+    var vars = <StateVariable>[];
+
+    if (varList.isNotEmpty) {
+      for (var e in varList.first.children) {
+        if (e is XmlElement) {
+          vars.add(new StateVariable.fromXml(e));
+        }
+      }
+    }
+
     var service = new Service(
       type,
       id,
       controlUrl,
       eventSubUrl,
       scpdUrl,
-      acts
+      acts,
+      vars
     );
 
     for (var act in acts) {
@@ -85,12 +97,14 @@ class ServiceDescription {
 }
 
 class Service {
-  String controlUrl;
-  String eventSubUrl;
-  String scpdUrl;
   final String type;
   final String id;
   final List<Action> actions;
+  final List<StateVariable> stateVariables;
+
+  String controlUrl;
+  String eventSubUrl;
+  String scpdUrl;
 
   Service(
     this.type,
@@ -98,7 +112,8 @@ class Service {
     this.controlUrl,
     this.eventSubUrl,
     this.scpdUrl,
-    this.actions);
+    this.actions,
+    this.stateVariables);
 
   Future<String> sendToControlUrl(String name, String param) async {
     var body = _SOAP_BODY.replaceAll("{param}", param);

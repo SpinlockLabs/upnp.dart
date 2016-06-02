@@ -12,6 +12,8 @@ class Device {
   List<Icon> icons = [];
   List<ServiceDescription> services = [];
 
+  Device();
+
   Device.fromXml(this.url, XmlDocument doc) {
     var uri = Uri.parse(url);
     var document = doc.rootElement;

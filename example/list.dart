@@ -36,6 +36,7 @@ Future printDevice(Device device) async {
           .where((it) => it.direction == "out")
           .map((it) => it.name)
           .toList()}");
+        print("    - State Variable: ${action.relatedStateVariable}");
         print("");
       }
 
