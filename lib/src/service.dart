@@ -133,7 +133,11 @@ class Service {
         var doc = xml.parse(content);
         throw new UpnpException(doc.rootElement);
       } catch (e) {
-        throw new Exception("\n\n${response.body}");
+        if (e is! UpnpException) {
+          throw new Exception("\n\n${response.body}");
+        } else {
+          rethrow;
+        }
       }
     } else {
       return response.body;
