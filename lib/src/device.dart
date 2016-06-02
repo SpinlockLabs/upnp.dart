@@ -9,6 +9,12 @@ class Device {
   String udn;
   String uuid;
   String url;
+  String presentationUrl;
+  String modelType;
+  String modelDescription;
+  String modelNumber;
+  String manufacturerUrl;
+
   List<Icon> icons = [];
   List<ServiceDescription> services = [];
 
@@ -35,6 +41,10 @@ class Device {
     modelName = XmlUtils.getTextSafe(deviceNode, "modelName");
     manufacturer = XmlUtils.getTextSafe(deviceNode, "manufacturer");
     udn = XmlUtils.getTextSafe(deviceNode, "UDN");
+    presentationUrl = XmlUtils.getTextSafe(deviceNode, "presentationURL");
+    modelType = XmlUtils.getTextSafe(deviceNode, "modelType");
+    modelDescription = XmlUtils.getTextSafe(deviceNode, "modelDescription");
+    manufacturerUrl = XmlUtils.getTextSafe(deviceNode, "manufacturerURL");
 
     if (udn != null) {
       uuid = udn.substring("uuid:".length);
