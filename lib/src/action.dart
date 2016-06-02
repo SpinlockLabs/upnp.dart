@@ -42,7 +42,7 @@ class Action {
 
     var result = await service.sendToControlUrl(name, param);
     var doc = xml.parse(result);
-    var response = doc
+    XmlElement response = doc
       .rootElement;
 
     if (response.name.local != "Body") {
@@ -57,6 +57,16 @@ class Action {
       && !response.name.local.contains("Response") &&
       response.children.length > 1) {
       response = response.children[1];
+    }
+
+    if (response.children.length == 1) {
+      var d = response.children[0];
+
+      if (d is XmlElement) {
+        if (d.name.local.contains("Response")) {
+          response = d;
+        }
+      }
     }
 
     List<XmlElement> results = response.children
