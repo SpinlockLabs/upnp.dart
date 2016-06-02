@@ -28,6 +28,10 @@ class ServiceDescription {
       if (m.startsWith("http:") || m.startsWith("https:")) {
         scpdUrl = m;
       } else {
+        if (!m.startsWith("/")) {
+          m = "/${m}";
+        }
+
         scpdUrl = urlBase + m;
       }
     }
