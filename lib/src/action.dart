@@ -20,9 +20,7 @@ class Action {
           argdef,
           "relatedStateVariable"
         );
-        var isRetVal = argdef.children
-          .where((it) => it is XmlElement)
-          .any((child) => child.name.toString() == "retval");
+        var isRetVal = direction == "out";
 
         arguments.add(
           new ActionArgument(
