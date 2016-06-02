@@ -50,12 +50,15 @@ class Action {
       response = response.children[1];
     }
 
-    var results = response.children
-      .where((it) => it is XmlElement)
-      .map((it) => it.name.toString());
+    if (const bool.fromEnvironment("upnp.action.show_response", defaultValue: false)) {
+      print("Got Action Response: ${response.toXmlString()}");
+    }
+
+    List<XmlElement> results = response.children
+      .where((it) => it is XmlElement).toList();
     var map = {};
-    for (var r in results) {
-      map[r] = response.findElements(r).first.text;
+    for (XmlElement r in results) {
+      map[r.name.local] = r.text;
     }
     return map;
   }
