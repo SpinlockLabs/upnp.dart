@@ -1,9 +1,10 @@
 import "package:upnp/upnp.dart";
 
-main() async {
-  var client = new DiscoveredClient.fake("http://192.168.1.4:49153/setup.xml");
+main(List<String> args) async {
+  var client = new DiscoveredClient.fake(args[0]);
   var device = await client.getDevice();
-  var service = await device.getService("urn:Belkin:service:deviceinfo:1");
-  var result = await service.invokeAction("GetDeviceInformation", {});
+  print(device.services);
+  var service = await device.getService(args[1]);
+  var result = await service.invokeAction(args[2], {});
   print(result);
 }

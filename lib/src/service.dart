@@ -95,6 +95,9 @@ class ServiceDescription {
     }
     return service;
   }
+
+  @override
+  String toString() => "ServiceDescription(${id})";
 }
 
 class Service {

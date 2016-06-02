@@ -46,7 +46,7 @@ class Action {
       .rootElement;
 
     if (response.name.local != "Body") {
-      response = response.firstChild;
+      response = response.children.firstWhere((x) => x is XmlElement);
     }
 
     if (const bool.fromEnvironment("upnp.action.show_response", defaultValue: false)) {
