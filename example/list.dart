@@ -36,7 +36,21 @@ Future printDevice(Device device) async {
           .where((it) => it.direction == "out")
           .map((it) => it.name)
           .toList()}");
-        print("    - State Variable: ${action.relatedStateVariable}");
+
+        print("");
+      }
+
+      if (service.stateVariables.isNotEmpty) {
+        print("  - State Variables:");
+      } else {
+        print("");
+      }
+
+      for (var variable in service.stateVariables) {
+        print("    - Name: ${variable.name}");
+        print("    - Data Type: ${variable.dataType}");
+        print("    - Default Value: ${variable.defaultValue}");
+
         print("");
       }
 
@@ -52,13 +66,18 @@ Future printDevice(Device device) async {
 main() async {
   var discoverer = new DeviceDiscoverer();
 
-  var devices = await discoverer
-    .getDevices(timeout: const Duration(seconds: 8));
+  await discoverer
+    .quickDiscoverClients(timeout: const Duration(seconds: 8))
+    .listen((DiscoveredClient client) async {
+    print(client);
+    Device device;
 
-  for (var device in devices) {
-    await printDevice(device);
-  }
+    try {
+      device = await client.getDevice();
+    } catch (_) {}
 
-  discoverer.stop();
-
+    if (device != null) {
+      await printDevice(device);
+    }
+  });
 }

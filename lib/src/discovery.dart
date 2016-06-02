@@ -3,11 +3,10 @@ part of upnp;
 class DeviceDiscoverer {
   RawDatagramSocket _socket;
   StreamController<DiscoveredClient> _clientController =
-    new StreamController.broadcast(sync: true);
+    new StreamController.broadcast();
 
   Future start() async {
     _socket = await RawDatagramSocket.bind("0.0.0.0", 0);
-
 
     _socket.listen((event) {
       switch (event) {
@@ -85,7 +84,17 @@ class DeviceDiscoverer {
   }
 
   void stop() {
+    if (_discoverySearchTimer != null) {
+      _discoverySearchTimer.cancel();
+      _discoverySearchTimer = null;
+    }
+
     _socket.close();
+
+    if (!_clientController.isClosed) {
+      _clientController.close();
+      _clientController = new StreamController<DiscoveredClient>.broadcast();
+    }
   }
 
   Stream<DiscoveredClient> get clients => _clientController.stream;
@@ -119,6 +128,31 @@ class DeviceDiscoverer {
     sub.cancel();
     stop();
     return list;
+  }
+
+  Timer _discoverySearchTimer;
+
+  Stream<DiscoveredClient> quickDiscoverClients({
+    Duration timeout,
+    Duration searchInterval: const Duration(seconds: 10)
+  }) async* {
+    if (_socket == null) {
+      await start();
+    }
+
+    if (timeout != null) {
+      search();
+      new Future.delayed(timeout, () {
+        stop();
+      });
+    } else if (searchInterval != null) {
+      search();
+      _discoverySearchTimer = new Timer.periodic(searchInterval, (_) {
+        search();
+      });
+    }
+
+    yield* clients;
   }
 
   Future<List<DiscoveredDevice>> discoverDevices({

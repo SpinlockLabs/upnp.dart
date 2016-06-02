@@ -3,7 +3,6 @@ part of upnp;
 class Action {
   Service service;
   String name;
-  String relatedStateVariable;
   List<ActionArgument> arguments = [];
 
   Action();
@@ -26,26 +25,16 @@ class Action {
           .any((child) => child.name.toString() == "retval");
 
         arguments.add(
-          new ActionArgument(name, direction, relatedStateVariable, isRetVal)
+          new ActionArgument(
+            this,
+            name,
+            direction,
+            relatedStateVariable,
+            isRetVal
+          )
         );
       }
     }
-  }
-
-  StateVariable getStateVariable() {
-    if (relatedStateVariable != null) {
-      return null;
-    }
-
-    Iterable<StateVariable> vars = service
-      .stateVariables
-      .where((x) => x.name == relatedStateVariable);
-
-    if (vars.isNotEmpty) {
-      return vars.first;
-    }
-
-    return null;
   }
 
   Future<Map<String, String>> invoke(Map<String, dynamic> args) async {
@@ -84,14 +73,33 @@ class StateVariable {
 }
 
 class ActionArgument {
+  final Action action;
   final String name;
   final String direction;
   final String relatedStateVariable;
   final bool isRetVal;
 
   ActionArgument(
+    this.action,
     this.name,
     this.direction,
     this.relatedStateVariable,
     this.isRetVal);
+
+  StateVariable getStateVariable() {
+    if (relatedStateVariable != null) {
+      return null;
+    }
+
+    Iterable<StateVariable> vars = action
+      .service
+      .stateVariables
+      .where((x) => x.name == relatedStateVariable);
+
+    if (vars.isNotEmpty) {
+      return vars.first;
+    }
+
+    return null;
+  }
 }

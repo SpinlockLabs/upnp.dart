@@ -49,10 +49,10 @@ class ServiceDescription {
       return null;
     }
 
-    XmlDocument doc;
+    XmlElement doc;
 
     try {
-      doc = xml.parse(response.body.replaceAll("ï»¿", ""));
+      doc = xml.parse(response.body.replaceAll("ï»¿", "")).rootElement;
     } catch (e) {
       return null;
     }
