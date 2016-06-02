@@ -16,24 +16,20 @@ class ServiceDescription {
   String eventSubUrl;
   String scpdUrl;
 
-  ServiceDescription.fromXml(String urlBase, XmlElement service) {
+  ServiceDescription.fromXml(Uri uriBase, XmlElement service) {
     type = XmlUtils.getTextSafe(service, "serviceType").trim();
     id = XmlUtils.getTextSafe(service, "serviceId").trim();
-    controlUrl = urlBase + XmlUtils.getTextSafe(service, "controlURL").trim();
-    eventSubUrl = urlBase + XmlUtils.getTextSafe(service, "eventSubURL").trim();
+    controlUrl = uriBase.resolve(
+      XmlUtils.getTextSafe(service, "controlURL").trim()
+    ).toString();
+    eventSubUrl = uriBase.resolve(
+      XmlUtils.getTextSafe(service, "eventSubURL").trim()
+    ).toString();
 
     var m = XmlUtils.getTextSafe(service, "SCPDURL");
 
     if (m != null) {
-      if (m.startsWith("http:") || m.startsWith("https:")) {
-        scpdUrl = m;
-      } else {
-        if (!m.startsWith("/")) {
-          m = "/${m}";
-        }
-
-        scpdUrl = urlBase + m;
-      }
+      scpdUrl = uriBase.resolve(m).toString();
     }
   }
 

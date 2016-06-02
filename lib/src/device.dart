@@ -21,7 +21,7 @@ class Device {
     urlBase = XmlUtils.getTextSafe(document, "URLBase");
 
     if (urlBase == null) {
-      urlBase = uri.origin;
+      urlBase = uri.toString();
     }
 
     if (document.findElements("device").isEmpty) {
@@ -69,11 +69,13 @@ class Device {
       }
     }
 
+    Uri baseUri = Uri.parse(urlBase);
+
     if (deviceNode.findElements("serviceList").isNotEmpty) {
       var list = deviceNode.findElements("serviceList").first;
       for (var e in list.children) {
         if (e is XmlElement) {
-          services.add(new ServiceDescription.fromXml(urlBase, e));
+          services.add(new ServiceDescription.fromXml(baseUri, e));
         }
       }
     }
