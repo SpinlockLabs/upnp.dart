@@ -41,7 +41,15 @@ class Action {
     }).join("\n") + '</u:${name}>\n';
 
     var result = await service.sendToControlUrl(name, param);
-    var response = xml.parse(result).firstChild.firstChild.children[1];
+    var response = xml.parse(result)
+      .rootElement
+      .firstChild
+      .firstChild;
+
+    if (response.children.length > 1) {
+      response = response.children[1];
+    }
+
     var results = response.children
       .where((it) => it is XmlElement)
       .map((it) => it.name.toString());
