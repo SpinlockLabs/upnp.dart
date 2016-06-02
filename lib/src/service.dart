@@ -42,7 +42,8 @@ class ServiceDescription {
       throw new Exception("Unable to fetch service, no SCPD URL.");
     }
 
-    var response = await UpnpCommon.httpClient.get(scpdUrl)
+    var response = await UpnpCommon.httpClient
+      .get(scpdUrl)
       .timeout(const Duration(seconds: 5), onTimeout: () => null);
 
     if (response == null) {
