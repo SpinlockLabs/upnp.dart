@@ -1,5 +1,7 @@
-import "package:upnp/upnp.dart";
 import "dart:async";
+
+import "package:upnp/upnp.dart";
+import "package:upnp/src/utils.dart";
 
 Future printDevice(Device device) async {
   print("- ${device.modelName} by ${device.manufacturer} (uuid: ${device.uuid})");
@@ -67,7 +69,7 @@ main() async {
   var discoverer = new DeviceDiscoverer();
 
   await discoverer
-    .quickDiscoverClients(timeout: const Duration(seconds: 8))
+    .quickDiscoverClients(timeout: const Duration(seconds: 5))
     .listen((DiscoveredClient client) async {
     Device device;
 
@@ -78,5 +80,7 @@ main() async {
     if (device != null) {
       await printDevice(device);
     }
-  });
+  }).asFuture();
+
+  await UpnpCommon.httpClient.close();
 }

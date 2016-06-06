@@ -1,12 +1,20 @@
 part of upnp;
 
+final InternetAddress _v4_Multicast = new InternetAddress("239.255.255.250");
+final InternetAddress _v6_Multicast = new InternetAddress("FF05::C");
+
 class DeviceDiscoverer {
   RawDatagramSocket _socket;
   StreamController<DiscoveredClient> _clientController =
     new StreamController.broadcast();
 
+  List<NetworkInterface> _interfaces;
+
   Future start() async {
     _socket = await RawDatagramSocket.bind("0.0.0.0", 0);
+
+    _socket.broadcastEnabled = true;
+    _socket.multicastHops = 20;
 
     _socket.listen((event) {
       switch (event) {
@@ -54,29 +62,29 @@ class DeviceDiscoverer {
       }
     });
 
-    var interfaces = await NetworkInterface.list();
+    _interfaces = await NetworkInterface.list();
     var joinMulticastFunction = _socket.joinMulticast;
-    for (var interface in interfaces) {
+    for (var interface in _interfaces) {
       withAddress(InternetAddress address) {
         try {
-          Function.apply(joinMulticastFunction, [
-            address,
-            interface
-          ]);
-        } on NoSuchMethodError {
           Function.apply(joinMulticastFunction, [
             address
           ], {
             #interface: interface
           });
+        } on NoSuchMethodError {
+          Function.apply(joinMulticastFunction, [
+            address,
+            interface
+          ]);
         }
       }
 
       try {
-        withAddress(new InternetAddress("239.255.255.250"));
+        withAddress(_v4_Multicast);
       } on SocketException {
         try {
-          withAddress(new InternetAddress("FF05::C"));
+          withAddress(_v6_Multicast);
         } on OSError {
         }
       }
@@ -109,7 +117,8 @@ class DeviceDiscoverer {
     buff.write("ST:${searchTarget}\r\n");
     buff.write("USER-AGENT:unix/5.1 UPnP/1.1 crash/1.0\r\n\r\n");
     var data = UTF8.encode(buff.toString());
-    _socket.send(data, new InternetAddress("239.255.255.250"), 1900);
+
+    _socket.send(data, _v4_Multicast, 1900);
   }
 
   Future<List<DiscoveredClient>> discoverClients({
