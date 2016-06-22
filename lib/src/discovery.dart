@@ -107,7 +107,11 @@ class DeviceDiscoverer {
 
   Stream<DiscoveredClient> get clients => _clientController.stream;
 
-  void search([String searchTarget = "upnp:rootdevice"]) {
+  void search([String searchTarget]) {
+    if (searchTarget == null) {
+      searchTarget = "upnp:rootdevice";
+    }
+
     var buff = new StringBuffer();
 
     buff.write("M-SEARCH * HTTP/1.1\r\n");
@@ -143,21 +147,22 @@ class DeviceDiscoverer {
 
   Stream<DiscoveredClient> quickDiscoverClients({
     Duration timeout,
-    Duration searchInterval: const Duration(seconds: 10)
+    Duration searchInterval: const Duration(seconds: 10),
+    String target
   }) async* {
     if (_socket == null) {
       await start();
     }
 
     if (timeout != null) {
-      search();
+      search(target);
       new Future.delayed(timeout, () {
         stop();
       });
     } else if (searchInterval != null) {
-      search();
+      search(target);
       _discoverySearchTimer = new Timer.periodic(searchInterval, (_) {
-        search();
+        search(target);
       });
     }
 
