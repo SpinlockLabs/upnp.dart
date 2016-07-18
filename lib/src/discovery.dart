@@ -143,21 +143,22 @@ class DeviceDiscoverer {
 
   Stream<DiscoveredClient> quickDiscoverClients({
     Duration timeout,
-    Duration searchInterval: const Duration(seconds: 10)
+    Duration searchInterval: const Duration(seconds: 10),
+    String query: "upnp:rootdevice"
   }) async* {
     if (_socket == null) {
       await start();
     }
 
     if (timeout != null) {
-      search();
+      search(query);
       new Future.delayed(timeout, () {
         stop();
       });
     } else if (searchInterval != null) {
-      search();
+      search(query);
       _discoverySearchTimer = new Timer.periodic(searchInterval, (_) {
-        search();
+        search(query);
       });
     }
 
