@@ -33,7 +33,7 @@ class ServiceDescription {
     }
   }
 
-  Future<Service> getService() async {
+  Future<Service> getService([Device device]) async {
     if (scpdUrl == null) {
       throw new Exception("Unable to fetch service, no SCPD URL.");
     }
@@ -81,6 +81,7 @@ class ServiceDescription {
     }
 
     var service = new Service(
+      device,
       type,
       id,
       controlUrl,
@@ -93,6 +94,11 @@ class ServiceDescription {
     for (var act in acts) {
       act.service = service;
     }
+
+    for (var v in vars) {
+      v.service = service;
+    }
+
     return service;
   }
 
@@ -101,6 +107,7 @@ class ServiceDescription {
 }
 
 class Service {
+  final Device device;
   final String type;
   final String id;
   final List<Action> actions;
@@ -111,6 +118,7 @@ class Service {
   String scpdUrl;
 
   Service(
+    this.device,
     this.type,
     this.id,
     this.controlUrl,
@@ -158,4 +166,3 @@ class Service {
     return await actions.firstWhere((it) => it.name == name).invoke(args);
   }
 }
-

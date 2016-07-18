@@ -5,7 +5,7 @@ main() async {
   disc.quickDiscoverClients().listen((client) async {
     try {
       var dev = await client.getDevice();
-      print(dev.friendlyName);
+      print("${dev.friendlyName}: ${dev.url}");
     } catch (e) {
       print("ERROR: ${e} - ${client.location}");
     }

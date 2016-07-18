@@ -34,7 +34,7 @@ class DeviceDiscoverer {
           if (firstLine.toLowerCase().trim() ==
             "HTTP/1.1 200 OK".toLowerCase()) {
             var headers = {};
-            var client =  new DiscoveredClient();
+            var client = new DiscoveredClient();
 
             for (var part in parts) {
               var hp = part.split(":");
