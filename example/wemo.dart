@@ -1,27 +1,18 @@
 import "package:upnp/upnp.dart";
 
-void main() {
+main() async {
   var discover = new DeviceDiscoverer();
 
-  discover.getDevices().then((devices) {
-    return devices.where((it) => it.modelName.trim() == "Socket");
-  }).then((devices) {
-    for (var device in devices) {
-      Service service;
-      device.getService("urn:Belkin:service:basicevent:1").then((_) {
-        service = _;
-        toggle(service);
-      });
-    }
-  });
-}
+  DiscoveredClient client = await discover.quickDiscoverClients(query: "urn:Belkin:device:controllee:1").first;
+  var device = await client.getDevice();
 
-void toggle(Service service) {
-  service.invokeAction("GetBinaryState", {}).then((result) {
-    var state = int.parse(result["BinaryState"]);
+  print("Device: ${device.friendlyName}");
 
-    service.invokeAction("SetBinaryState", {
-      "BinaryState": state == 0 ? 1 : 0
-    });
+  var service = await device.getService("urn:Belkin:service:basicevent:1");
+  var sub = new StateSubscriptionManager();
+  await sub.init();
+  var v = service.stateVariables.firstWhere((x) => x.name == "BinaryState");
+  sub.subscribe(v).listen((dynamic value) {
+    print(value);
   });
 }

@@ -34,7 +34,7 @@ class DeviceDiscoverer {
           if (firstLine.toLowerCase().trim() ==
             "HTTP/1.1 200 OK".toLowerCase()) {
             var headers = {};
-            var client =  new DiscoveredClient();
+            var client = new DiscoveredClient();
 
             for (var part in parts) {
               var hp = part.split(":");
@@ -107,7 +107,11 @@ class DeviceDiscoverer {
 
   Stream<DiscoveredClient> get clients => _clientController.stream;
 
-  void search([String searchTarget = "upnp:rootdevice"]) {
+  void search([String searchTarget]) {
+    if (searchTarget == null) {
+      searchTarget = "upnp:rootdevice";
+    }
+
     var buff = new StringBuffer();
 
     buff.write("M-SEARCH * HTTP/1.1\r\n");

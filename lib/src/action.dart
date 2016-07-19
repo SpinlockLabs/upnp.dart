@@ -84,9 +84,11 @@ class Action {
 }
 
 class StateVariable {
+  Service service;
   String name;
   String dataType;
   dynamic defaultValue;
+  bool doesSendEvents = false;
 
   StateVariable();
 
@@ -97,6 +99,13 @@ class StateVariable {
       XmlUtils.getTextSafe(e, "defaultValue"),
       dataType
     );
+    doesSendEvents = e.getAttribute("sendEvents") == "yes";
+  }
+
+  String getGenericId() {
+    return sha1.convert(UTF8.encode(
+      "${service.device.uuid}::${service.id}::${name}"
+    )).toString();
   }
 }
 

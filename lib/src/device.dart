@@ -94,7 +94,7 @@ class Device {
   Future<Service> getService(String type) async {
     return await services.firstWhere(
       (it) => it.type == type || it.id == type)
-      .getService();
+      .getService(this);
   }
 }
 
