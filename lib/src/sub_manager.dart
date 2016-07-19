@@ -15,12 +15,12 @@ class StateSubscriptionManager {
       if (_subs.containsKey(id)) {
         _subs[id].deliver(request);
       }
-    });
+    }, onError: (e) {});
   }
 
   close() async {
     for (String key in _subs.keys.toList()) {
-      _subs[key]._controller.close();
+      _subs[key]._done();
       _subs.remove(key);
     }
 
@@ -30,7 +30,7 @@ class StateSubscriptionManager {
     }
   }
 
-  Stream<dynamic> subscribe(StateVariable v) {
+  Stream<dynamic> subscribeToVariable(StateVariable v) {
     var id = v.getGenericId();
     StateSubscription sub;
     if (_subs.containsKey(id)) {
@@ -45,17 +45,71 @@ class StateSubscriptionManager {
 
     return sub._controller.stream;
   }
+
+  Stream<dynamic> subscribeToService(Service service) {
+    var id = sha256.convert(UTF8.encode(service.eventSubUrl)).toString();
+    StateSubscription sub = _subs[id];
+    if (sub == null) {
+      sub = _subs[id] = new StateSubscription();
+      sub.eventUrl = service.eventSubUrl;
+      sub.manager = this;
+      sub.init();
+    }
+    return sub._controller.stream;
+  }
+}
+
+class InternalNetworkUtils {
+  static Future<String> getMostLikelyHost(Uri uri) async {
+    var parts = uri.host.split(".");
+    var interfaces = await NetworkInterface.list();
+
+    String calc(int skip) {
+      var prefix = parts.take(parts.length - skip).join(".") + ".";
+
+      for (NetworkInterface interface in interfaces) {
+        for (InternetAddress addr in interface.addresses) {
+          if (addr.address.startsWith(prefix)) {
+            return addr.address;
+          }
+        }
+      }
+
+      return null;
+    }
+
+    for (var i = 1; i <= 3; i++) {
+      var ip = calc(i);
+      if (ip != null) {
+        return ip;
+      }
+    }
+
+    return Platform.localHostname;
+  }
 }
 
 class StateSubscription {
+  static int REFRESH = 30;
+
   StateSubscriptionManager manager;
   StateVariable lastStateVariable;
   String eventUrl;
   StreamController<dynamic> _controller;
+  Timer _timer;
+  String lastCallbackUrl;
+
+  String _lastSid;
 
   void init() {
     _controller = new StreamController<dynamic>.broadcast(
-      onListen: () => _sub(),
+      onListen: () async {
+        try {
+          await _sub();
+        } catch (e, stack) {
+          _controller.addError(e, stack);
+        }
+      },
       onCancel: () => _unsub()
     );
   }
@@ -64,45 +118,158 @@ class StateSubscription {
     var content = UTF8.decode(await request.fold(<int>[], (List<int> a, List<int> b) {
       return a..addAll(b);
     }));
-
-    print(content);
-
     request.response.close();
+
+    var doc = xml.parse(content);
+    var props = doc.rootElement.children.where((x) => x is XmlElement).toList();
+    var map = {};
+    for (XmlElement prop in props) {
+      if (prop.children.isEmpty) {
+        continue;
+      }
+
+      XmlElement child = prop.children.firstWhere((x) => x is XmlElement);
+      String p = child.name.local;
+
+      if (lastStateVariable != null && lastStateVariable.name == p) {
+        _controller.add(XmlUtils.asRichValue(child.text));
+        return;
+      } else if (lastStateVariable == null) {
+        map[p] = XmlUtils.asRichValue(child.text);
+      }
+    }
+
+    if (lastStateVariable == null && map.isNotEmpty) {
+      _controller.add(map);
+    }
+  }
+
+  String _getId() {
+    if (lastStateVariable != null) {
+      return lastStateVariable.getGenericId();
+    } else {
+      return sha256.convert(UTF8.encode(eventUrl)).toString();
+    }
   }
 
   Future _sub() async {
-    var id = lastStateVariable.getGenericId();
+    var id = _getId();
 
-    var request = new http.Request("SUBSCRIBE", Uri.parse(
+    var uri = Uri.parse(
       eventUrl
-    ));
+    );
+
+    var request = new http.Request("SUBSCRIBE", uri);
+
+    var url = await _getCallbackUrl(uri, id);
+    lastCallbackUrl = url;
 
     request.headers.addAll({
-      "USER-AGENT": "UPNP.dart/1.0",
-      "CALLBACK": "<http://${Platform.localHostname}:${manager.server.port}/${id}>",
+      "User-Agent": "UPNP.dart/1.0",
+      "ACCEPT": "*/*",
+      "CALLBACK": "<${url}>",
       "NT": "upnp:event",
-      "TIMEOUT": "31556926", // Thirty year subscription, because infinite is not a thing...
+      "TIMEOUT": "Second-${REFRESH}",
       "HOST": "${request.url.host}:${request.url.port}"
     });
 
     var response = await UpnpCommon.httpClient.send(request);
-    var responseContent = await response.stream.bytesToString();
+    response.stream.drain();
+
+    if (response.statusCode != HttpStatus.OK) {
+      throw new Exception("Failed to subscribe.");
+    }
+
+    _lastSid = response.headers["sid"];
+
+    _timer = new Timer(new Duration(seconds: REFRESH), () {
+      _timer = null;
+      _refresh();
+    });
   }
 
-  Future _unsub() async {
+  Future _refresh() async {
+    var uri = Uri.parse(
+      eventUrl
+    );
+
+    var id = _getId();
+    var url = await _getCallbackUrl(uri, id);
+    if (url != lastCallbackUrl) {
+      await _unsub().timeout(const Duration(seconds: 10), onTimeout: () {
+        return null;
+      });
+      await _sub();
+      return;
+    }
+
+    var request = new http.Request("SUBSCRIBE", uri);
+
+    request.headers.addAll({
+      "User-Agent": "UPNP.dart/1.0",
+      "ACCEPT": "*/*",
+      "TIMEOUT": "Second-${REFRESH}",
+      "SID": _lastSid,
+      "HOST": "${request.url.host}:${request.url.port}"
+    });
+
+    var response = await UpnpCommon.httpClient.send(request)
+      .timeout(const Duration(seconds: 10), onTimeout: () {
+      return null;
+    });
+
+    if (response != null) {
+      if (response.statusCode != HttpStatus.OK) {
+        _controller.close();
+        return;
+      } else {
+        _timer = new Timer(new Duration(seconds: REFRESH), () {
+          _timer = null;
+          _refresh();
+        });
+      }
+    }
+  }
+
+  Future<String> _getCallbackUrl(Uri uri, String id) async {
+    var host = await InternalNetworkUtils.getMostLikelyHost(uri);
+    return "http://${host}:${manager.server.port}/${id}";
+  }
+
+  Future _unsub([bool close = false]) async {
     var request = new http.Request("UNSUBSCRIBE", Uri.parse(
       eventUrl
     ));
 
-    var id = lastStateVariable.getGenericId();
     request.headers.addAll({
-      "USER-AGENT": "UPNP.dart/1.0",
-      "CALLBACK": "<http://${Platform.localHostname}:${manager.server.port}/${id}>",
-      "NT": "upnp:event",
-      "TIMEOUT": "31556926"
+      "User-Agent": "UPNP.dart/1.0",
+      "ACCEPT": "*/*",
+      "SID": _lastSid
     });
 
-    var response = await UpnpCommon.httpClient.send(request);
-    var responseContent = await response.stream.bytesToString();
+    var response = await UpnpCommon.httpClient.send(request)
+      .timeout(const Duration(seconds: 10), onTimeout: () {
+      return null;
+    });
+
+    if (response != null) {
+      response.stream.drain();
+    }
+
+    if (_timer != null) {
+      _timer.cancel();
+      _timer = null;
+    }
+  }
+
+  void _done() {
+    if (_timer != null) {
+      _timer.cancel();
+      _timer = null;
+    }
+
+    if (_controller != null) {
+      _controller.close();
+    }
   }
 }

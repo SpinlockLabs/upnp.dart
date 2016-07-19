@@ -321,7 +321,7 @@ class DiscoveredClient {
 
     var response = await UpnpCommon.httpClient
       .get(uri)
-      .timeout(const Duration(seconds: 3));
+      .timeout(const Duration(seconds: 10));
 
     if (response.statusCode != 200) {
       throw new Exception(
