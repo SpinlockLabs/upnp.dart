@@ -152,6 +152,7 @@ class DeviceDiscoverer {
   }) async* {
     if (_socket == null) {
       await start();
+      await new Future.delayed(const Duration(seconds: 1));
     }
 
     if (timeout != null) {

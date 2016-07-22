@@ -10,27 +10,52 @@ class Action {
   Action.fromXml(XmlElement e) {
     name = XmlUtils.getTextSafe(e, "name");
 
+    addArgDef(XmlElement argdef, [bool stripPrefix = false]) {
+      var name = XmlUtils.getTextSafe(argdef, "name");
+
+      if (name == null) {
+        return;
+      }
+
+      var direction = XmlUtils.getTextSafe(argdef, "direction");
+      var relatedStateVariable = XmlUtils.getTextSafe(
+        argdef,
+        "relatedStateVariable"
+      );
+      var isRetVal = direction == "out";
+
+      if (this.name.startsWith("Get")) {
+        var of = this.name.substring(3);
+        if (of == name) {
+          isRetVal = true;
+        }
+      }
+
+      if (name.startsWith("Get") && stripPrefix) {
+        name = name.substring(3);
+      }
+
+      arguments.add(
+        new ActionArgument(
+          this,
+          name,
+          direction,
+          relatedStateVariable,
+          isRetVal
+        )
+      );
+    }
+
     var argumentLists = e.findElements("argumentList");
     if (argumentLists.isNotEmpty) {
       var argList = argumentLists.first;
-      for (var argdef in argList.children.where((it) => it is XmlElement)) {
-        var name = XmlUtils.getTextSafe(argdef, "name");
-        var direction = XmlUtils.getTextSafe(argdef, "direction");
-        var relatedStateVariable = XmlUtils.getTextSafe(
-          argdef,
-          "relatedStateVariable"
-        );
-        var isRetVal = direction == "out";
-
-        arguments.add(
-          new ActionArgument(
-            this,
-            name,
-            direction,
-            relatedStateVariable,
-            isRetVal
-          )
-        );
+      if (argList.children.any((x) => x is XmlElement && x.name.local == "name")) { // Bad UPnP Implementation fix for WeMo
+        print(argList.toXmlString());
+        addArgDef(argList, true);
+      } else {
+        for (var argdef in argList.children.where((it) => it is XmlElement)) {
+          addArgDef(argdef);
+        }
       }
     }
   }
