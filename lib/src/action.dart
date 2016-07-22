@@ -50,7 +50,6 @@ class Action {
     if (argumentLists.isNotEmpty) {
       var argList = argumentLists.first;
       if (argList.children.any((x) => x is XmlElement && x.name.local == "name")) { // Bad UPnP Implementation fix for WeMo
-        print(argList.toXmlString());
         addArgDef(argList, true);
       } else {
         for (var argdef in argList.children.where((it) => it is XmlElement)) {
