@@ -14,7 +14,7 @@ class DeviceDiscoverer {
     _socket = await RawDatagramSocket.bind("0.0.0.0", 0);
 
     _socket.broadcastEnabled = true;
-    _socket.multicastHops = 20;
+    _socket.multicastHops = 50;
 
     _socket.listen((event) {
       switch (event) {
