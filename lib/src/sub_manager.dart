@@ -14,6 +14,13 @@ class StateSubscriptionManager {
 
       if (_subs.containsKey(id)) {
         _subs[id].deliver(request);
+      } else if (id == "/_list") {
+        request.response
+          ..writeln(_subs.keys.join("\n"))
+          ..close();
+      } else {
+        request.response.statusCode = HttpStatus.NOT_FOUND;
+        request.response.close();
       }
     }, onError: (e) {});
   }
