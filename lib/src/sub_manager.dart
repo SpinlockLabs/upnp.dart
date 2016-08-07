@@ -18,6 +18,14 @@ class StateSubscriptionManager {
         request.response
           ..writeln(_subs.keys.join("\n"))
           ..close();
+      } else if (request.uri.path == "/_state") {
+        var out = "";
+        for (String sid in _subs.keys) {
+          out += "${sid}: ${_subs[sid]._lastValues}\n";
+        }
+        request.response
+          ..write(out)
+          ..close();
       } else {
         request.response.statusCode = HttpStatus.NOT_FOUND;
         request.response.close();
@@ -108,6 +116,8 @@ class StateSubscription {
 
   String _lastSid;
 
+  Map<String, dynamic> _lastValues;
+
   void init() {
     _controller = new StreamController<dynamic>.broadcast(
       onListen: () async {
@@ -148,6 +158,7 @@ class StateSubscription {
 
     if (lastStateVariable == null && map.isNotEmpty) {
       _controller.add(map);
+      _lastValues = map;
     }
   }
 
