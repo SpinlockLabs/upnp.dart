@@ -1,6 +1,8 @@
 part of upnp;
 
 class Device {
+  XmlElement deviceElement;
+
   String deviceType;
   String urlBase;
   String friendlyName;
@@ -18,23 +20,24 @@ class Device {
   List<Icon> icons = [];
   List<ServiceDescription> services = [];
 
-  Device();
+  List<String> get serviceNames => services.map((x) => x.id).toList();
 
-  Device.fromXml(this.url, XmlDocument doc) {
+  void loadFromXml(String url, XmlElement e) {
+    deviceElement = e;
+
     var uri = Uri.parse(url);
-    var document = doc.rootElement;
 
-    urlBase = XmlUtils.getTextSafe(document, "URLBase");
+    urlBase = XmlUtils.getTextSafe(deviceElement, "URLBase");
 
     if (urlBase == null) {
       urlBase = uri.toString();
     }
 
-    if (document.findElements("device").isEmpty) {
-      throw new Exception("ERROR: Invalid Device XML!\n\n${doc}");
+    if (deviceElement.findElements("device").isEmpty) {
+      throw new Exception("ERROR: Invalid Device XML!\n\n${deviceElement}");
     }
 
-    var deviceNode = XmlUtils.getElementByName(document, "device");
+    var deviceNode = XmlUtils.getElementByName(deviceElement, "device");
 
     deviceType = XmlUtils.getTextSafe(deviceNode, "deviceType");
     friendlyName = XmlUtils.getTextSafe(deviceNode, "friendlyName");
@@ -81,20 +84,38 @@ class Device {
 
     Uri baseUri = Uri.parse(urlBase);
 
-    if (deviceNode.findElements("serviceList").isNotEmpty) {
-      var list = deviceNode.findElements("serviceList").first;
-      for (var e in list.children) {
-        if (e is XmlElement) {
-          services.add(new ServiceDescription.fromXml(baseUri, e));
+    processDeviceNode(XmlElement e) {
+      if (e.findElements("serviceList").isNotEmpty) {
+        var list = e.findElements("serviceList").first;
+        for (var svc in list.children) {
+          if (svc is XmlElement) {
+            services.add(new ServiceDescription.fromXml(baseUri, svc));
+          }
+        }
+      }
+
+      if (e.findElements("deviceList").isNotEmpty) {
+        var list = e.findElements("deviceList").first;
+        for (var dvc in list.children) {
+          if (dvc is XmlElement) {
+            processDeviceNode(dvc);
+          }
         }
       }
     }
+
+    processDeviceNode(deviceNode);
   }
 
   Future<Service> getService(String type) async {
-    return await services.firstWhere(
-      (it) => it.type == type || it.id == type)
-      .getService(this);
+    var service = services.firstWhere(
+      (it) => it.type == type || it.id == type, orElse: () => null);
+
+    if (service != null) {
+      return await service.getService(this);
+    } else {
+      return null;
+    }
   }
 }
 
@@ -107,6 +128,9 @@ class Icon {
 }
 
 class CommonDevices {
-  static const String CHROMECAST = "urn:dial-multiscreen-org:service:dial:1";
+  static const String DIAL = "urn:dial-multiscreen-org:service:dial:1";
+  static const String CHROMECAST = DIAL;
   static const String WEMO = "urn:Belkin:device:controllee:1";
+  static const String WIFI_ROUTER = "urn:schemas-wifialliance-org:device:WFADevice:1";
+  static const String WAN_ROUTER = "urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1";
 }

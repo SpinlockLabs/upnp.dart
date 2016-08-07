@@ -285,7 +285,7 @@ class DiscoveredDevice {
       throw new ArgumentError("Not SCPD Compatible");
     }
 
-    return new Device.fromXml(location, doc);
+    return new Device()..loadFromXml(location, doc.rootElement);
   }
 }
 
@@ -341,6 +341,6 @@ class DiscoveredClient {
           " description. ${e}");
     }
 
-    return new Device.fromXml(location, doc);
+    return new Device()..loadFromXml(location, doc.rootElement);
   }
 }

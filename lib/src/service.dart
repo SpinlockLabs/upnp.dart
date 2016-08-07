@@ -127,6 +127,8 @@ class Service {
     this.actions,
     this.stateVariables);
 
+  List<String> get actionNames => actions.map((x) => x.name).toList();
+
   Future<String> sendToControlUrl(String name, String param) async {
     var body = _SOAP_BODY.replaceAll("{param}", param);
 
