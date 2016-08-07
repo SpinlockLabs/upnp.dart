@@ -22,7 +22,8 @@ class Device {
 
   List<String> get serviceNames => services.map((x) => x.id).toList();
 
-  void loadFromXml(String url, XmlElement e) {
+  void loadFromXml(String u, XmlElement e) {
+    url = u;
     deviceElement = e;
 
     var uri = Uri.parse(url);
