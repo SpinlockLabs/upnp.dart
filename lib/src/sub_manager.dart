@@ -14,7 +14,7 @@ class StateSubscriptionManager {
 
       if (_subs.containsKey(id)) {
         _subs[id].deliver(request);
-      } else if (id == "/_list") {
+      } else if (request.uri.path == "/_list") {
         request.response
           ..writeln(_subs.keys.join("\n"))
           ..close();
