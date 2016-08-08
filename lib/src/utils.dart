@@ -79,6 +79,6 @@ class XmlUtils {
 class UpnpCommon {
   static http.Client httpClient = new http.IOClient(
     new HttpClient()
-      ..maxConnectionsPerHost = 10
+      ..badCertificateCallback = (a, b, c) => true
   );
 }
