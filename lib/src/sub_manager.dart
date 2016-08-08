@@ -3,6 +3,7 @@ part of upnp;
 class StateSubscriptionManager {
   HttpServer server;
   Map<String, StateSubscription> _subs = {};
+  Logger debugLogger;
 
   init() async {
     await close();
@@ -10,6 +11,10 @@ class StateSubscriptionManager {
     server = await HttpServer.bind("0.0.0.0", 0);
 
     server.listen((HttpRequest request) {
+      if (debugLogger != null) {
+        debugLogger.fine("[Subscription Server] ${request.method} ${request.uri.path} by ${request.connectionInfo.remoteAddress.address}");
+      }
+
       String id = request.uri.path.substring(1);
 
       if (_subs.containsKey(id)) {

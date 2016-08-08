@@ -4,6 +4,8 @@ import "dart:async";
 import "dart:convert";
 import "dart:io";
 
+import "package:logging/logging.dart";
+
 import "package:xml/xml.dart" hide parse;
 import "package:xml/xml.dart" as xml show parse;
 
