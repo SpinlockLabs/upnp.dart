@@ -1,11 +1,16 @@
 import "package:upnp/dial.dart";
 
 main() async {
-  var dial = new DialScreen.forCastDevice("192.168.1.4");
-  var isAppRunning = !(await dial.isIdle());
-  if (isAppRunning) {
-    print("An application is running.");
-  } else {
-    print("No application is running.");
+  await for (DialScreen screen in DialScreen.find()) {
+    var app = await screen.getCurrentApp();
+    if (app != null) {
+      print("Dial Screen ${screen.name} is running ${app}.");
+    } else {
+      print("Dial Screen ${screen.name} is idle.");
+    }
+
+    await screen.launch("YouTube", payload: {
+      "v": "9HH-asvLAj4"
+    });
   }
 }
