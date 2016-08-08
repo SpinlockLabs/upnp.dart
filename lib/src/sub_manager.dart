@@ -26,7 +26,7 @@ class StateSubscriptionManager {
       } else if (request.uri.path == "/_state") {
         var out = "";
         for (String sid in _subs.keys) {
-          out += "${sid}: ${_subs[sid]._lastValues}\n";
+          out += "${sid}: ${_subs[sid]._lastValue}\n";
         }
         request.response
           ..write(out)
@@ -121,7 +121,7 @@ class StateSubscription {
 
   String _lastSid;
 
-  Map<String, dynamic> _lastValues;
+  dynamic _lastValue;
 
   void init() {
     _controller = new StreamController<dynamic>.broadcast(
@@ -154,7 +154,9 @@ class StateSubscription {
       String p = child.name.local;
 
       if (lastStateVariable != null && lastStateVariable.name == p) {
-        _controller.add(XmlUtils.asRichValue(child.text));
+        var value = XmlUtils.asRichValue(child.text);
+        _controller.add(value);
+        _lastValue = value;
         return;
       } else if (lastStateVariable == null) {
         map[p] = XmlUtils.asRichValue(child.text);
@@ -163,7 +165,7 @@ class StateSubscription {
 
     if (lastStateVariable == null && map.isNotEmpty) {
       _controller.add(map);
-      _lastValues = map;
+      _lastValue = map;
     }
   }
 
@@ -198,6 +200,10 @@ class StateSubscription {
 
     var response = await UpnpCommon.httpClient.send(request);
     response.stream.drain();
+
+    if (manager.debugLogger != null) {
+      manager.debugLogger.finest("Received ${response.statusCode} from ${request.url} when subscribing.");
+    }
 
     if (response.statusCode != HttpStatus.OK) {
       throw new Exception("Failed to subscribe.");
@@ -277,6 +283,10 @@ class StateSubscription {
 
     if (response != null) {
       response.stream.drain();
+    }
+
+    if (manager.debugLogger != null) {
+      manager.debugLogger.finest("Received ${response.statusCode} from ${request.url} when unsubscribing.");
     }
 
     if (_timer != null) {

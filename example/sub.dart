@@ -24,7 +24,7 @@ main() async {
         if (service != null) {
           try {
             sub.subscribeToService(service).listen((value) {
-              print("${device.friendlyName}: ${value}");
+              print("${device.friendlyName} - ${service.id}: ${value}");
             }, onError: (e, stack) {
               print("Error while subscribing to ${service.type} for ${device.friendlyName}: ${e}");
             });
@@ -37,7 +37,10 @@ main() async {
     new Timer(const Duration(seconds: 60), () {
       print("Ended.");
       sub.close();
-      UpnpCommon.httpClient.close();
+
+      Timer.run(() {
+        UpnpCommon.httpClient.close();
+      });
     });
   });
 }
