@@ -6,8 +6,9 @@ main() async {
     try {
       var dev = await client.getDevice();
       print("${dev.friendlyName}: ${dev.url}");
-    } catch (e) {
+    } catch (e, stack) {
       print("ERROR: ${e} - ${client.location}");
+      print(stack);
     }
   });
 }
