@@ -70,7 +70,7 @@ Future printDevice(Device device) async {
   print("-----");
 }
 
-main() async {
+main(List<String> args) async {
   var discoverer = new DeviceDiscoverer();
 
   await discoverer
@@ -81,6 +81,10 @@ main() async {
     try {
       device = await client.getDevice();
     } catch (_) {}
+
+    if (args.isNotEmpty && !args.contains(device.uuid)) {
+      return;
+    }
 
     if (device != null) {
       await printDevice(device);
