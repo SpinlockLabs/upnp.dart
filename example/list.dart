@@ -12,13 +12,18 @@ Future printDevice(Device device) async {
     return;
   }
 
+  var svcs = <Service>[];
+
   for (var svc in device.services) {
     if (svc == null) {
       continue;
     }
 
     var service = await svc.getService();
+    svcs.add(service);
+  }
 
+  for (var service in svcs) {
     if (service != null) {
       print("  - Type: ${service.type}");
       print("  - ID: ${service.id}");
