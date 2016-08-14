@@ -74,7 +74,6 @@ class DialScreen {
         response.stream.drain();
       }
     }
-    return false;
   }
 
   Future<bool> hasApp(String app) async {
