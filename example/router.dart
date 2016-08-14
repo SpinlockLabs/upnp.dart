@@ -11,12 +11,12 @@ main() async {
   var address = await router.getExternalIpAddress();
   print("External IP Address: ${address}");
   var totalBytesSent = await router.getTotalBytesSent();
-  print("Total Bytes Sent: ${totalBytesSent}");
+  print("Total Bytes Sent: ${totalBytesSent} bytes");
   var totalBytesReceived = await router.getTotalBytesReceived();
-  print("Total Bytes Received: ${totalBytesReceived}");
+  print("Total Bytes Received: ${totalBytesReceived} bytes");
   var totalPacketsSent = await router.getTotalPacketsSent();
-  print("Total Packets Sent: ${totalPacketsSent}");
+  print("Total Packets Sent: ${totalPacketsSent} bytes");
   var totalPacketsReceived = await router.getTotalPacketsReceived();
-  print("Total Packets Received: ${totalPacketsReceived}");
+  print("Total Packets Received: ${totalPacketsReceived} bytes");
   exit(0);
 }

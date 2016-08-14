@@ -56,7 +56,9 @@ Future printDevice(Device device) async {
       for (var variable in service.stateVariables) {
         print("    - Name: ${variable.name}");
         print("    - Data Type: ${variable.dataType}");
-        print("    - Default Value: ${variable.defaultValue}");
+        if (variable.defaultValue != null) {
+          print("    - Default Value: ${variable.defaultValue}");
+        }
 
         print("");
       }
