@@ -11,7 +11,7 @@ class DeviceDiscoverer {
   List<NetworkInterface> _interfaces;
 
   Future start() async {
-    _socket = await RawDatagramSocket.bind("0.0.0.0", 0);
+    _socket = await RawDatagramSocket.bind(InternetAddress.ANY_IP_V4.address, 0);
 
     _socket.broadcastEnabled = true;
     _socket.multicastHops = 50;
@@ -82,10 +82,10 @@ class DeviceDiscoverer {
 
       try {
         withAddress(_v4_Multicast);
-      } on SocketException {
+      } catch (_) {
         try {
           withAddress(_v6_Multicast);
-        } on OSError {
+        } catch (e) {
         }
       }
     }

@@ -18,7 +18,7 @@ void main() {
         var mode = attributes["Mode"];
         print("Mode: ${mode}");
         print("Brewing: ${brewing}");
-        print("Brewed: ${brewing}");
+        print("Brewed: ${brewed}");
       });
     }
   });

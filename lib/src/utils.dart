@@ -58,6 +58,10 @@ class XmlUtils {
   }
 
   static dynamic asValueType(input, String type) {
+    if (input == null) {
+      return null;
+    }
+
     if (type is String) {
       type = type.toLowerCase();
     }

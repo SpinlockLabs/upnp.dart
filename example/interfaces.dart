@@ -1,7 +1,10 @@
 import "dart:io";
 
 main() async {
-  var results = await NetworkInterface.list();
-
-  print(results);
+  for (NetworkInterface iface in await NetworkInterface.list()) {
+    print("${iface.name}:");
+    for (InternetAddress address in iface.addresses) {
+      print("  - ${address.address}");
+    }
+  }
 }

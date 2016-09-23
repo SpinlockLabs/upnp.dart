@@ -9,6 +9,12 @@ class UpnpHostUtils {
 
     var interfaces = await NetworkInterface.list();
     for (var iface in interfaces) {
+      if (iface.name.startsWith("VirtualBox") ||
+          iface.name.startsWith("VMWare") ||
+          iface.name.startsWith("vm")) {
+        continue;
+      }
+
       for (var addr in iface.addresses) {
         if (addr.address.startsWith("192.") ||
           addr.address.startsWith("10.") ||
