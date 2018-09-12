@@ -56,12 +56,12 @@ class UpnpDiscoveryServer {
     _socket.multicastHops = 100;
 
     _socket.listen((RawSocketEvent e) async {
-      if (e == RawSocketEvent.READ) {
+      if (e == RawSocketEvent.read) {
         var packet = _socket.receive();
         _socket.writeEventsEnabled = true;
 
         try {
-          var string = UTF8.decode(packet.data);
+          var string = utf8.decode(packet.data);
           var lines = string.split("\r\n");
           var firstLine = lines.first;
 
@@ -80,7 +80,7 @@ class UpnpDiscoveryServer {
               var search = map["ST"];
               var devices = await respondToSearch(search, packet, map);
               for (var dev in devices) {
-                _socket.send(UTF8.encode(dev), packet.address, packet.port);
+                _socket.send(utf8.encode(dev), packet.address, packet.port);
               }
             }
           }
@@ -137,8 +137,8 @@ class UpnpDiscoveryServer {
       buff.write("LOCATION: ${rootDescriptionUrl}\r\n");
       buff.write("NT: ${device.deviceType}\r\n");
       buff.write("NTS: ssdp:alive\r\n");
-      buff.write("USN: uuid:${await UpnpHostUtils.generateToken()}\r\n");
-      var bytes = UTF8.encode(buff.toString());
+      buff.write("USN: uuid:${UpnpHostUtils.generateToken()}\r\n");
+      var bytes = utf8.encode(buff.toString());
       _socket.send(bytes, _v4_Multicast, 1900);
     }
   }

@@ -1,7 +1,9 @@
 part of upnp.dial;
 
 class DialScreen {
-  static Stream<DialScreen> find() async* {
+  static Stream<DialScreen> find({
+    bool silent: true
+  }) async* {
     var discovery = new DeviceDiscoverer();
     var ids = new Set<String>();
 
@@ -21,6 +23,9 @@ class DialScreen {
           dev.friendlyName
         );
       } catch (e) {
+        if (!silent) {
+          rethrow;
+        }
       }
     }
   }
@@ -35,7 +40,8 @@ class DialScreen {
   }
 
   Future<bool> isIdle() async {
-    http.StreamedResponse response;
+    HttpClientResponse response;
+
     try {
       response = await send("GET", "/apps");
       if (response.statusCode == 302) {
@@ -44,7 +50,7 @@ class DialScreen {
       return true;
     } finally {
       if (response != null) {
-        response.stream.drain();
+        await response.drain();
       }
     }
   }
@@ -62,7 +68,7 @@ class DialScreen {
       payload = out;
     }
 
-    http.StreamedResponse response;
+    HttpClientResponse response;
     try {
       response = await send("POST", "/apps/${app}", body: payload);
       if (response.statusCode == 201) {
@@ -71,13 +77,13 @@ class DialScreen {
       return false;
     } finally {
       if (response != null) {
-        response.stream.drain();
+        await response.drain();
       }
     }
   }
 
   Future<bool> hasApp(String app) async {
-    http.StreamedResponse response;
+    HttpClientResponse response;
     try {
       response = await send("GET", "/apps/${app}");
       if (response.statusCode == 404) {
@@ -86,24 +92,24 @@ class DialScreen {
       return true;
     } finally {
       if (response != null) {
-        response.stream.drain();
+        await response.drain();
       }
     }
   }
 
   Future<String> getCurrentApp() async {
-    http.StreamedResponse response;
+    HttpClientResponse response;
     try {
       response = await send("GET", "/apps");
       if (response.statusCode == 302) {
-        var loc = response.headers["location"];
+        var loc = response.headers.value("location");
         var uri = Uri.parse(loc);
         return uri.pathSegments[1];
       }
       return null;
     } finally {
       if (response != null) {
-        response.stream.drain();
+        await response.drain();
       }
     }
   }
@@ -111,7 +117,7 @@ class DialScreen {
   Future<bool> close([String app]) async {
     var toClose = app == null ? await getCurrentApp() : app;
     if (toClose != null) {
-      http.StreamedResponse response;
+      HttpClientResponse response;
       try {
         response = await send("DELETE", "/apps/${toClose}");
         if (response.statusCode != 200) {
@@ -120,25 +126,35 @@ class DialScreen {
         return true;
       } finally {
         if (response != null) {
-          response.stream.drain();
+          await response.drain();
         }
       }
     }
     return false;
   }
 
-  Future<http.StreamedResponse> send(String method, String path, {body, Map<String, dynamic> headers}) async {
-    var request = new http.Request(method, baseUri.resolve(path));
+  Future<HttpClientResponse> send(
+    String method,
+    String path, {
+      body,
+      Map<String, dynamic> headers
+  }) async {
+    var request = await UpnpCommon.httpClient.openUrl(
+      method, baseUri.resolve(path)
+    );
+
     if (body is String) {
-      request.body = body;
+      request.write(body);
     } else if (body is List<int>) {
-      request.bodyBytes = body;
+      request.add(body);
     }
 
     if (headers != null) {
-      request.headers.addAll(headers);
+      for (String key in headers.keys) {
+        request.headers.set(key, headers[key]);
+      }
     }
 
-    return await UpnpCommon.httpClient.send(request);
+    return await request.close();
   }
 }

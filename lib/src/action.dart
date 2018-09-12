@@ -49,7 +49,8 @@ class Action {
     var argumentLists = e.findElements("argumentList");
     if (argumentLists.isNotEmpty) {
       var argList = argumentLists.first;
-      if (argList.children.any((x) => x is XmlElement && x.name.local == "name")) { // Bad UPnP Implementation fix for WeMo
+      if (argList.children.any((x) => x is XmlElement && x.name.local == "name")) {
+        // Bad UPnP Implementation fix for WeMo
         addArgDef(argList, true);
       } else {
         for (var argdef in argList.children.where((it) => it is XmlElement)) {
@@ -98,8 +99,9 @@ class Action {
     }
 
     List<XmlElement> results = response.children
-      .where((it) => it is XmlElement).toList();
-    var map = {};
+      .whereType<XmlElement>()
+      .toList();
+    var map = <String, String>{};
     for (XmlElement r in results) {
       map[r.name.local] = r.text;
     }
@@ -127,7 +129,7 @@ class StateVariable {
   }
 
   String getGenericId() {
-    return sha1.convert(UTF8.encode(
+    return sha1.convert(utf8.encode(
       "${service.device.uuid}::${service.id}::${name}"
     )).toString();
   }

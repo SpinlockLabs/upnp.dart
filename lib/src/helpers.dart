@@ -6,15 +6,12 @@ class WemoHelper {
       .parse("<attributes>" + XmlUtils.unescape(input) + "</attributes>")
       .rootElement;
     var attr = {};
-    doc.children.where((it) => it is XmlElement).forEach((element) {
+    doc.children.whereType<XmlElement>().forEach((element) {
       var name = element.findElements("name").first.text.trim();
-      var value = element.findElements("value").first.text.trim();
+      dynamic value = element.findElements("value").first.text.trim();
+      value = num.tryParse(value) ?? value;
 
-      try {
-        value = num.parse(value);
-      } catch (e) {}
-
-      value = value == "true" || value == "false" ? value == "true" : value;
+      value = (value == "true" || value == "false") ? value == "true" : value;
 
       attr[name] = value;
     });

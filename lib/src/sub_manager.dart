@@ -3,7 +3,6 @@ part of upnp;
 class StateSubscriptionManager {
   HttpServer server;
   Map<String, StateSubscription> _subs = {};
-  Logger debugLogger;
 
   init() async {
     await close();
@@ -11,10 +10,6 @@ class StateSubscriptionManager {
     server = await HttpServer.bind("0.0.0.0", 0);
 
     server.listen((HttpRequest request) {
-      if (debugLogger != null) {
-        debugLogger.fine("[Subscription Server] ${request.method} ${request.uri.path} by ${request.connectionInfo.remoteAddress.address}");
-      }
-
       String id = request.uri.path.substring(1);
 
       if (_subs.containsKey(id)) {
@@ -32,7 +27,7 @@ class StateSubscriptionManager {
           ..write(out)
           ..close();
       } else {
-        request.response.statusCode = HttpStatus.NOT_FOUND;
+        request.response.statusCode = HttpStatus.notFound;
         request.response.close();
       }
     }, onError: (e) {});
@@ -67,7 +62,7 @@ class StateSubscriptionManager {
   }
 
   Stream<dynamic> subscribeToService(Service service) {
-    var id = sha256.convert(UTF8.encode(service.eventSubUrl)).toString();
+    var id = sha256.convert(utf8.encode(service.eventSubUrl)).toString();
     StateSubscription sub = _subs[id];
     if (sub == null) {
       sub = _subs[id] = new StateSubscription();
@@ -137,14 +132,14 @@ class StateSubscription {
   }
 
   deliver(HttpRequest request) async {
-    var content = UTF8.decode(await request.fold(<int>[], (List<int> a, List<int> b) {
+    var content = utf8.decode(await request.fold(<int>[], (List<int> a, List<int> b) {
       return a..addAll(b);
     }));
     request.response.close();
 
     var doc = xml.parse(content);
     var props = doc.rootElement.children.where((x) => x is XmlElement).toList();
-    var map = {};
+    var map = <String, dynamic>{};
     for (XmlElement prop in props) {
       if (prop.children.isEmpty) {
         continue;
@@ -173,7 +168,7 @@ class StateSubscription {
     if (lastStateVariable != null) {
       return lastStateVariable.getGenericId();
     } else {
-      return sha256.convert(UTF8.encode(eventUrl)).toString();
+      return sha256.convert(utf8.encode(eventUrl)).toString();
     }
   }
 
@@ -184,32 +179,26 @@ class StateSubscription {
       eventUrl
     );
 
-    var request = new http.Request("SUBSCRIBE", uri);
+    var request = await UpnpCommon.httpClient.openUrl("SUBSCRIBE", uri);
 
     var url = await _getCallbackUrl(uri, id);
     lastCallbackUrl = url;
 
-    request.headers.addAll({
-      "User-Agent": "UPNP.dart/1.0",
-      "ACCEPT": "*/*",
-      "CALLBACK": "<${url}>",
-      "NT": "upnp:event",
-      "TIMEOUT": "Second-${REFRESH}",
-      "HOST": "${request.url.host}:${request.url.port}"
-    });
+    request.headers.set("User-Agent", "UPNP.dart/1.0");
+    request.headers.set("ACCEPT", "*/*");
+    request.headers.set("CALLBACK", "<${url}>");
+    request.headers.set("NT", "upnp:event");
+    request.headers.set("TIMEOUT", "Second-${REFRESH}");
+    request.headers.set("HOST", "${request.uri.host}:${request.uri.port}");
 
-    var response = await UpnpCommon.httpClient.send(request);
-    response.stream.drain();
+    var response = await request.close();
+    response.drain();
 
-    if (manager.debugLogger != null) {
-      manager.debugLogger.finest("Received ${response.statusCode} from ${request.url} when subscribing.");
-    }
-
-    if (response.statusCode != HttpStatus.OK) {
+    if (response.statusCode != HttpStatus.ok) {
       throw new Exception("Failed to subscribe.");
     }
 
-    _lastSid = response.headers["sid"];
+    _lastSid = response.headers.value("SID");
 
     _timer = new Timer(new Duration(seconds: REFRESH), () {
       _timer = null;
@@ -232,23 +221,21 @@ class StateSubscription {
       return;
     }
 
-    var request = new http.Request("SUBSCRIBE", uri);
+    var request = await UpnpCommon.httpClient.openUrl("SUBSCRIBE", uri);
 
-    request.headers.addAll({
-      "User-Agent": "UPNP.dart/1.0",
-      "ACCEPT": "*/*",
-      "TIMEOUT": "Second-${REFRESH}",
-      "SID": _lastSid,
-      "HOST": "${request.url.host}:${request.url.port}"
-    });
+    request.headers.set("User-Agent", "UPNP.dart/1.0");
+    request.headers.set("ACCEPT", "*/*");
+    request.headers.set("TIMEOUT", "Second-${REFRESH}");
+    request.headers.set("SID", _lastSid);
+    request.headers.set("HOST", "${request.uri.host}:${request.uri.port}");
 
-    var response = await UpnpCommon.httpClient.send(request)
+    var response = await request.close()
       .timeout(const Duration(seconds: 10), onTimeout: () {
       return null;
     });
 
     if (response != null) {
-      if (response.statusCode != HttpStatus.OK) {
+      if (response.statusCode != HttpStatus.ok) {
         _controller.close();
         return;
       } else {
@@ -266,27 +253,21 @@ class StateSubscription {
   }
 
   Future _unsub([bool close = false]) async {
-    var request = new http.Request("UNSUBSCRIBE", Uri.parse(
+    var request = await UpnpCommon.httpClient.openUrl("UNSUBSCRIBE", Uri.parse(
       eventUrl
     ));
 
-    request.headers.addAll({
-      "User-Agent": "UPNP.dart/1.0",
-      "ACCEPT": "*/*",
-      "SID": _lastSid
-    });
+    request.headers.set("User-Agent", "UPNP.dart/1.0");
+    request.headers.set("ACCEPT", "*/*");
+    request.headers.set("SID", _lastSid);
 
-    var response = await UpnpCommon.httpClient.send(request)
+    var response = await request.close()
       .timeout(const Duration(seconds: 10), onTimeout: () {
       return null;
     });
 
     if (response != null) {
-      response.stream.drain();
-    }
-
-    if (manager.debugLogger != null) {
-      manager.debugLogger.finest("Received ${response.statusCode} from ${request.url} when unsubscribing.");
+      response.drain();
     }
 
     if (_timer != null) {

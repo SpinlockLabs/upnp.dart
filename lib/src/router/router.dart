@@ -19,6 +19,31 @@ class Router {
     }
   }
 
+  static Stream<Router> findAll({
+    bool silent: true,
+    bool unique: true,
+    bool enableIpv4Only: true
+  }) async* {
+    var discovery = new DeviceDiscoverer();
+    await discovery.start(ipv4: true, ipv6: !enableIpv4Only);
+    await for (DiscoveredClient client in discovery.quickDiscoverClients(
+      timeout: const Duration(seconds: 10),
+      query: CommonDevices.WAN_ROUTER,
+      unique: unique
+    )) {
+      try {
+        var device = await client.getDevice();
+        var router = new Router(device);
+        await router.init();
+        yield router;
+      } catch (e) {
+        if (!silent) {
+          rethrow;
+        }
+      }
+    }
+  }
+
   final Device device;
 
   Service _wanExternalService;
@@ -42,21 +67,21 @@ class Router {
 
   Future<int> getTotalBytesSent() async {
     var result = await _wanCommonService.invokeAction("GetTotalBytesSent", {});
-    return num.parse(result["NewTotalBytesSent"], (_) => 0);
+    return num.tryParse(result["NewTotalBytesSent"]) ?? 0;
   }
 
   Future<int> getTotalBytesReceived() async {
     var result = await _wanCommonService.invokeAction("GetTotalBytesReceived", {});
-    return num.parse(result["NewTotalBytesReceived"], (_) => 0);
+    return num.tryParse(result["NewTotalBytesReceived"]) ?? 0;
   }
 
   Future<int> getTotalPacketsSent() async {
     var result = await _wanCommonService.invokeAction("GetTotalPacketsSent", {});
-    return num.parse(result["NewTotalPacketsSent"], (_) => 0);
+    return num.tryParse(result["NewTotalPacketsSent"]) ?? 0;
   }
 
   Future<int> getTotalPacketsReceived() async {
     var result = await _wanCommonService.invokeAction("GetTotalPacketsReceived", {});
-    return num.parse(result["NewTotalPacketsReceived"], (_) => 0);
+    return num.tryParse(result["NewTotalPacketsReceived"]) ?? 0;
   }
 }

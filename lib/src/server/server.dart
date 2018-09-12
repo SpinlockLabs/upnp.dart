@@ -19,7 +19,7 @@ class UpnpServer {
       await handleControlRequest(request);
     } else {
       request.response
-        ..statusCode = HttpStatus.NOT_FOUND
+        ..statusCode = HttpStatus.notFound
         ..close();
     }
   }
@@ -46,7 +46,7 @@ class UpnpServer {
 
     if (service == null) {
       request.response
-        ..statusCode = HttpStatus.NOT_FOUND
+        ..statusCode = HttpStatus.notFound
         ..close();
     } else {
       var xml = service.toXml();
@@ -61,7 +61,7 @@ class UpnpServer {
     var bytes = await request.fold(
       <int>[], (List<int> a, List<int> b) => a..addAll(b)
     );
-    var xml = XML.parse(UTF8.decode(bytes));
+    var xml = XML.parse(utf8.decode(bytes));
     var root = xml.rootElement;
     var body = root.firstChild;
     var service = device.findService(request.uri.pathSegments.last);
@@ -72,7 +72,7 @@ class UpnpServer {
 
     if (service == null) {
       request.response
-        ..statusCode = HttpStatus.NOT_FOUND
+        ..statusCode = HttpStatus.notFound
         ..close();
       return;
     }
@@ -83,7 +83,7 @@ class UpnpServer {
         var act = service.actions.firstWhere((x) => x.name == name, orElse: () => null);
         if (act == null) {
           request.response
-            ..statusCode = HttpStatus.BAD_REQUEST
+            ..statusCode = HttpStatus.badRequest
             ..close();
           return;
         }
@@ -92,7 +92,7 @@ class UpnpServer {
           // TODO(kaendfinger): make this have inputs and outputs.
           await act.handler({});
           request.response
-            ..statusCode = HttpStatus.OK
+            ..statusCode = HttpStatus.ok
             ..close();
           return;
         }

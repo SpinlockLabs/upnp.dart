@@ -2,6 +2,7 @@ import "dart:async";
 
 import "package:upnp/upnp.dart";
 import "package:upnp/src/utils.dart";
+import "package:stack_trace/stack_trace.dart";
 
 Future printDevice(Device device) async {
   print("- ${device.modelName} by ${device.manufacturer} (uuid: ${device.uuid})");
@@ -73,25 +74,29 @@ Future printDevice(Device device) async {
 }
 
 main(List<String> args) async {
-  var discoverer = new DeviceDiscoverer();
+  await Chain.capture(() async {
+    var discoverer = new DeviceDiscoverer();
+    await discoverer.start(ipv6: false);
+    await discoverer
+      .quickDiscoverClients()
+      .listen((DiscoveredClient client) async {
+      Device device;
 
-  await discoverer
-    .quickDiscoverClients(timeout: const Duration(seconds: 5))
-    .listen((DiscoveredClient client) async {
-    Device device;
+      try {
+        device = await client.getDevice();
+      } catch (e) {
+        print(e);
+      }
 
-    try {
-      device = await client.getDevice();
-    } catch (_) {}
+      if (device == null || (args.isNotEmpty && !args.contains(device.uuid))) {
+        return;
+      }
 
-    if (args.isNotEmpty && !args.contains(device.uuid)) {
-      return;
-    }
+      if (device != null) {
+        await printDevice(device);
+      }
+    }).asFuture();
 
-    if (device != null) {
-      await printDevice(device);
-    }
-  }).asFuture();
-
-  await UpnpCommon.httpClient.close();
+    await UpnpCommon.httpClient.close();
+  });
 }

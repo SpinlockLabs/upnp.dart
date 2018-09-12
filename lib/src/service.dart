@@ -38,9 +38,11 @@ class ServiceDescription {
       throw new Exception("Unable to fetch service, no SCPD URL.");
     }
 
-    var response = await UpnpCommon.httpClient
-      .get(scpdUrl)
+    var request = await UpnpCommon.httpClient
+      .getUrl(Uri.parse(scpdUrl))
       .timeout(const Duration(seconds: 5), onTimeout: () => null);
+
+    var response = await request.close();
 
     if (response == null) {
       return null;
@@ -53,7 +55,9 @@ class ServiceDescription {
     XmlElement doc;
 
     try {
-      doc = xml.parse(response.body.replaceAll("ï»¿", "")).rootElement;
+      var content = await response.transform(utf8.decoder).join();
+      content = content.replaceAll("\u00EF\u00BB\u00BF", "");
+      doc = xml.parse(content).rootElement;
     } catch (e) {
       return null;
     }
@@ -136,29 +140,28 @@ class Service {
       print("Send to ${controlUrl} (SOAPACTION: ${type}#${name}): ${body}");
     }
 
-    var response = await UpnpCommon.httpClient.post(
-      controlUrl,
-      body: body,
-      headers: {
-      "SOAPACTION": '"${type}#${name}"',
-      "Content-Type": 'text/xml; charset="utf-8"',
-      "User-Agent": 'CyberGarage-HTTP/1.0'
-    });
+    var request = await UpnpCommon.httpClient.postUrl(Uri.parse(controlUrl));
+    request.headers.set("SOAPACTION", '"${type}#${name}"');
+    request.headers.set("Content-Type", 'text/xml; charset="utf-8"');
+    request.headers.set("User-Agent", 'CyberGarage-HTTP/1.0');
+    request.write(body);
+    var response = await request.close();
+
+    var content = await response.transform(utf8.decoder).join();
 
     if (response.statusCode != 200) {
       try {
-        var content = response.body;
         var doc = xml.parse(content);
         throw new UpnpException(doc.rootElement);
       } catch (e) {
         if (e is! UpnpException) {
-          throw new Exception("\n\n${response.body}");
+          throw new Exception("\n\n${content}");
         } else {
           rethrow;
         }
       }
     } else {
-      return response.body;
+      return content;
     }
   }
 

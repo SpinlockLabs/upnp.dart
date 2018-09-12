@@ -3,7 +3,6 @@ library upnp.utils;
 import "dart:io";
 
 import "package:xml/xml.dart" hide parse;
-import "package:http/http.dart" as http;
 
 class UpnpException {
   final XmlElement element;
@@ -48,7 +47,7 @@ class XmlUtils {
       return null;
     }
 
-    var number = num.parse(value, (_) => null);
+    var number = num.tryParse(value);
 
     if (number != null) {
       return number;
@@ -73,7 +72,7 @@ class XmlUtils {
       type == "int" ||
       type == "double" ||
       type == "float") {
-      return num.parse(input.toString(), (e) => null);
+      return num.tryParse(input.toString());
     } else {
       return input.toString();
     }
@@ -81,8 +80,5 @@ class XmlUtils {
 }
 
 class UpnpCommon {
-  static http.Client httpClient = new http.IOClient(
-    new HttpClient()
-      ..badCertificateCallback = (a, b, c) => true
-  );
+  static HttpClient httpClient = new HttpClient();
 }

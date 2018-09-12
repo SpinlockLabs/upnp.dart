@@ -8,9 +8,5 @@ main() async {
     } else {
       print("Dial Screen ${screen.name} is idle.");
     }
-
-    await screen.launch("YouTube", payload: {
-      "v": "9HH-asvLAj4"
-    });
   }
 }
