@@ -1,5 +1,5 @@
 name: upnp
-version: 1.0.0
+version: 2.0.0
 author: Kenneth Endfinger <kaendfinger@gmail.com>
 description: Universal Plugin and Play Client
 homepage: https://github.com/DirectMyFile/upnp.dart
