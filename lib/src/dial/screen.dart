@@ -9,7 +9,7 @@ class DialScreen {
 
     await for (DiscoveredClient client in discovery.quickDiscoverClients(
       timeout: const Duration(seconds: 5),
-      query: "urn:dial-multiscreen-org:device:dial:1"
+      query: CommonDevices.DIAL
     )) {
       if (ids.contains(client.usn)) {
         continue;

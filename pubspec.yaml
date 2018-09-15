@@ -6,4 +6,3 @@ homepage: https://github.com/DirectMyFile/upnp.dart
 dependencies:
   xml: "^3.2.0"
   crypto: "^2.0.6"
-  stack_trace: ^1.9.3

@@ -6,3 +6,6 @@
 - Device Information
 - Services
 - Actions
+- Host Support
+- DIAL API
+- Router API

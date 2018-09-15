@@ -22,12 +22,13 @@ class Router {
   static Stream<Router> findAll({
     bool silent: true,
     bool unique: true,
-    bool enableIpv4Only: true
+    bool enableIpv4Only: true,
+    Duration timeout: const Duration(seconds: 10)
   }) async* {
     var discovery = new DeviceDiscoverer();
     await discovery.start(ipv4: true, ipv6: !enableIpv4Only);
     await for (DiscoveredClient client in discovery.quickDiscoverClients(
-      timeout: const Duration(seconds: 10),
+      timeout: timeout,
       query: CommonDevices.WAN_ROUTER,
       unique: unique
     )) {
