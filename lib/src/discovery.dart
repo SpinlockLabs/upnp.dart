@@ -316,7 +316,7 @@ class DiscoveredDevice {
     XmlDocument doc;
 
     try {
-      var content = await response.transform(utf8.decoder).join();
+      var content = await response.cast<List<int>>().transform(utf8.decoder).join();
       doc = xml.parse(content);
     } on Exception catch (e) {
       throw new FormatException(
@@ -380,7 +380,7 @@ class DiscoveredClient {
     XmlDocument doc;
 
     try {
-      var content = await response.transform(utf8.decoder).join();
+      var content = await response.cast<List<int>>().transform(utf8.decoder).join();
       doc = xml.parse(content);
     } on Exception catch (e) {
       throw new FormatException(

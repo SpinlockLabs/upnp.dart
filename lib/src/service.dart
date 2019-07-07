@@ -55,7 +55,7 @@ class ServiceDescription {
     XmlElement doc;
 
     try {
-      var content = await response.transform(utf8.decoder).join();
+      var content = await response.cast<List<int>>().transform(utf8.decoder).join();
       content = content.replaceAll("\u00EF\u00BB\u00BF", "");
       doc = xml.parse(content).rootElement;
     } catch (e) {
@@ -147,7 +147,7 @@ class Service {
     request.write(body);
     var response = await request.close();
 
-    var content = await response.transform(utf8.decoder).join();
+    var content = await response.cast<List<int>>().transform(utf8.decoder).join();
 
     if (response.statusCode != 200) {
       try {
