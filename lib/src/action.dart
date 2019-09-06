@@ -66,7 +66,7 @@ class Action {
       argsIt = argsIt.replaceAll("&", "&amp;");
       return "<${it}>${argsIt}</${it}>";
     }).join("\n") + '</u:${name}>\n';
-    
+
     var result = await service.sendToControlUrl(name, param);
     var doc = xml.parse(result);
     XmlElement response = doc
