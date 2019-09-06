@@ -66,13 +66,7 @@ class Action {
       argsIt = argsIt.replaceAll("&", "&amp;");
       return "<${it}>${argsIt}</${it}>";
     }).join("\n") + '</u:${name}>\n';
-
-    // var param = '<u:${name} xmlns:u="${service.type}">\n' + args.keys.map((it) {
-    //   String argsIt = args[it].toString();
-    //   argsIt = argsIt.replaceAll("&", "&amp;");
-    //   return "<${it}>${argsIt}</${it}>";
-    // }).join("\n") + '\n</u:${name}>\n';
-
+    
     var result = await service.sendToControlUrl(name, param);
     var doc = xml.parse(result);
     XmlElement response = doc
