@@ -4,10 +4,13 @@ import "package:upnp/upnp.dart";
 import "package:upnp/src/utils.dart";
 
 Future printDevice(Device device) async {
-  print("- ${device.modelName} by ${device.manufacturer} (uuid: ${device.uuid})");
-  print("- URL: ${device.url}");
+  void prelude() {
+    print("- ${device.modelName} by ${device.manufacturer} (uuid: ${device.uuid})");
+    print("- URL: ${device.url}");
+  }
 
   if (device.services == null) {
+    prelude();
     print("-----");
     return;
   }
@@ -22,6 +25,8 @@ Future printDevice(Device device) async {
     var service = await svc.getService();
     svcs.add(service);
   }
+
+  prelude();
 
   for (var service in svcs) {
     if (service != null) {
@@ -83,7 +88,10 @@ main(List<String> args) async {
     try {
       device = await client.getDevice();
     } catch (e) {
-      assert(print(e));
+      assert(() {
+        print(e);
+        return true;
+      }());
     }
 
     if (device == null || (args.isNotEmpty && !args.contains(device.uuid))) {
