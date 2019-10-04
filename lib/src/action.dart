@@ -62,7 +62,9 @@ class Action {
 
   Future<Map<String, String>> invoke(Map<String, dynamic> args) async {
     var param = '  <u:${name} xmlns:u="${service.type}">' + args.keys.map((it) {
-      return "<${it}>${args[it]}</${it}>";
+      String argsIt = args[it].toString();
+      argsIt = argsIt.replaceAll("&", "&amp;");
+      return "<${it}>${argsIt}</${it}>";
     }).join("\n") + '</u:${name}>\n';
 
     var result = await service.sendToControlUrl(name, param);
