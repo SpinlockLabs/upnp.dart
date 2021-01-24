@@ -4,7 +4,7 @@ author: Kenneth Endfinger <kaendfinger@gmail.com>
 description: Universal Plugin and Play Host/Client
 homepage: https://github.com/SpinlockLabs/upnp.dart
 dependencies:
-  xml: "^3.2.0"
+  xml: ">=4.0.0 <5.0.0"
   crypto: "^2.0.6"
 environment:
   sdk: ">=2.0.0 <3.0.0"
