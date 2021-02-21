@@ -11,3 +11,5 @@ dartdoc-viewer/
 out/
 *.iml
 .packages
+.dart_tool/
+.vscode/
