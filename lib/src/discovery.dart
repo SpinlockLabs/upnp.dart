@@ -1,7 +1,7 @@
 part of upnp;
 
 final InternetAddress _v4_Multicast = new InternetAddress("239.255.255.250");
-final InternetAddress _v4_Multicast_1 = new InternetAddress("239.255.255.250");
+final InternetAddress _v4_Multicast_1 = new InternetAddress("255.255.255.255");
 final InternetAddress _v6_Multicast = new InternetAddress("FF05::C");
 
 class DeviceDiscoverer {
