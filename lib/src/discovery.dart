@@ -1,6 +1,7 @@
 part of upnp;
 
 final InternetAddress _v4_Multicast = new InternetAddress("239.255.255.250");
+final InternetAddress _v4_Multicast_1 = new InternetAddress("239.255.255.250");
 final InternetAddress _v6_Multicast = new InternetAddress("FF05::C");
 
 class DeviceDiscoverer {
@@ -81,6 +82,11 @@ class DeviceDiscoverer {
       socket.joinMulticast(_v4_Multicast);
     } on OSError {
     }
+    
+    try {
+      socket.joinMulticast(_v4_Multicast_1);
+    } on OSError {
+    }
 
     try {
       socket.joinMulticast(_v6_Multicast);
@@ -90,6 +96,11 @@ class DeviceDiscoverer {
     for (var interface in _interfaces) {
       try {
         socket.joinMulticast(_v4_Multicast, interface);
+      } on OSError {
+      }
+      
+      try {
+        socket.joinMulticast(_v4_Multicast_1, interface);
       } on OSError {
       }
 
@@ -139,6 +150,11 @@ class DeviceDiscoverer {
       if (socket.address.type == _v4_Multicast.type) {
         try {
           socket.send(data, _v4_Multicast, 1900);
+        } on SocketException {
+        }
+        
+        try {
+          socket.send(data, _v4_Multicast_1, 1900);
         } on SocketException {
         }
       }
