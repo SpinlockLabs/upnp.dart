@@ -32,7 +32,12 @@ class DeviceDiscoverer {
     InternetAddress address, {
     Function(Exception) onError: _doNowt,
   }) async {
-    var socket = await RawDatagramSocket.bind(address, 0);
+    var socket = await RawDatagramSocket.bind(
+      address,
+      0,
+      reuseAddress: true,
+      reusePort: true,
+    );
 
     socket.broadcastEnabled = true;
     socket.readEventsEnabled = true;
