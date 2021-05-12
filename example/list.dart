@@ -5,23 +5,14 @@ import "package:upnp/src/utils.dart";
 
 Future printDevice(Device device) async {
   void prelude() {
-    print("- ${device.modelName} by ${device.manufacturer} (uuid: ${device.uuid})");
+    print(
+        "- ${device.modelName} by ${device.manufacturer} (uuid: ${device.uuid})");
     print("- URL: ${device.url}");
   }
 
-  if (device.services == null) {
-    prelude();
-    print("-----");
-    return;
-  }
-
-  var svcs = <Service>[];
+  var svcs = <Service?>[];
 
   for (var svc in device.services) {
-    if (svc == null) {
-      continue;
-    }
-
     var service = await svc.getService();
     svcs.add(service);
   }
@@ -40,14 +31,10 @@ Future printDevice(Device device) async {
 
       for (var action in service.actions) {
         print("    - Name: ${action.name}");
-        print("    - Arguments: ${action.arguments
-          .where((it) => it.direction == "in")
-          .map((it) => it.name)
-          .toList()}");
-        print("    - Results: ${action.arguments
-          .where((it) => it.direction == "out")
-          .map((it) => it.name)
-          .toList()}");
+        print(
+            "    - Arguments: ${action.arguments.where((it) => it.direction == "in").map((it) => it.name).toList()}");
+        print(
+            "    - Results: ${action.arguments.where((it) => it.direction == "out").map((it) => it.name).toList()}");
 
         print("");
       }
@@ -81,9 +68,9 @@ main(List<String> args) async {
   var discoverer = new DeviceDiscoverer();
   await discoverer.start(ipv6: false);
   await discoverer
-    .quickDiscoverClients()
-    .listen((DiscoveredClient client) async {
-    Device device;
+      .quickDiscoverClients()
+      .listen((DiscoveredClient client) async {
+    Device? device;
 
     try {
       device = await client.getDevice();
@@ -98,10 +85,8 @@ main(List<String> args) async {
       return;
     }
 
-    if (device != null) {
-      await printDevice(device);
-    }
+    await printDevice(device);
   }).asFuture();
 
-  await UpnpCommon.httpClient.close();
+  UpnpCommon.httpClient.close();
 }

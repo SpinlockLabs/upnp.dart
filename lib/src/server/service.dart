@@ -1,16 +1,16 @@
 part of upnp.server;
 
 class UpnpHostService {
-  final String type;
-  final String id;
-  final String simpleName;
+  final String? type;
+  final String? id;
+  final String? simpleName;
 
   List<UpnpHostAction> actions = <UpnpHostAction>[];
 
   UpnpHostService({this.type, this.id, this.simpleName});
 
-  XML.XmlNode toXml() {
-    var x = new XML.XmlBuilder();
+  XmlNode toXml() {
+    var x = new XmlBuilder();
     x.element("scpd", nest: () {
       x.namespace("urn:schemas-upnp-org:service-1-0");
       x.element("specVersion", nest: () {
@@ -24,6 +24,6 @@ class UpnpHostService {
         }
       });
     });
-    return x.build();
+    return x.buildFragment();
   }
 }

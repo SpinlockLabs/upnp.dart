@@ -5,7 +5,7 @@ import "dart:convert";
 import "dart:io";
 import "dart:math" show Random;
 
-import "package:xml/xml.dart" as XML;
+import "package:xml/xml.dart";
 
 part "src/server/server.dart";
 part "src/server/device.dart";

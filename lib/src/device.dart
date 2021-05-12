@@ -1,32 +1,32 @@
 part of upnp;
 
 class Device {
-  XmlElement deviceElement;
+  late XmlElement deviceElement;
 
-  String deviceType;
-  String urlBase;
-  String friendlyName;
-  String manufacturer;
-  String modelName;
-  String udn;
-  String uuid;
-  String url;
-  String presentationUrl;
-  String modelType;
-  String modelDescription;
-  String modelNumber;
-  String manufacturerUrl;
+  String? deviceType;
+  String? urlBase;
+  String? friendlyName;
+  String? manufacturer;
+  String? modelName;
+  String? udn;
+  String? uuid;
+  String? url;
+  String? presentationUrl;
+  String? modelType;
+  String? modelDescription;
+  String? modelNumber;
+  String? manufacturerUrl;
 
   List<Icon> icons = [];
   List<ServiceDescription> services = [];
 
-  List<String> get serviceNames => services.map((x) => x.id).toList();
+  List<String?> get serviceNames => services.map((x) => x.id).toList();
 
-  void loadFromXml(String u, XmlElement e) {
+  void loadFromXml(String? u, XmlElement e) {
     url = u;
     deviceElement = e;
 
-    var uri = Uri.parse(url);
+    var uri = Uri.parse(url!);
 
     urlBase = XmlUtils.getTextSafe(deviceElement, "URLBase");
 
@@ -51,7 +51,7 @@ class Device {
     manufacturerUrl = XmlUtils.getTextSafe(deviceNode, "manufacturerURL");
 
     if (udn != null) {
-      uuid = udn.substring("uuid:".length);
+      uuid = udn!.substring("uuid:".length);
     }
 
     if (deviceNode.findElements("iconList").isNotEmpty) {
@@ -83,7 +83,7 @@ class Device {
       }
     }
 
-    Uri baseUri = Uri.parse(urlBase);
+    Uri baseUri = Uri.parse(urlBase!);
 
     processDeviceNode(XmlElement e) {
       if (e.findElements("serviceList").isNotEmpty) {
@@ -108,30 +108,32 @@ class Device {
     processDeviceNode(deviceNode);
   }
 
-  Future<Service> getService(String type) async {
-    var service = services.firstWhere(
-      (it) => it.type == type || it.id == type, orElse: () => null);
-
-    if (service != null) {
+  Future<Service?> getService(String type) async {
+    try {
+      final service = services.firstWhere(
+        (it) => it.type == type || it.id == type,
+      );
       return await service.getService(this);
-    } else {
+    } catch (e) {
       return null;
     }
   }
 }
 
 class Icon {
-  String mimetype;
-  int width;
-  int height;
-  int depth;
-  String url;
+  String? mimetype;
+  int? width;
+  int? height;
+  int? depth;
+  String? url;
 }
 
 class CommonDevices {
   static const String DIAL = "urn:dial-multiscreen-org:service:dial:1";
   static const String CHROMECAST = DIAL;
   static const String WEMO = "urn:Belkin:device:controllee:1";
-  static const String WIFI_ROUTER = "urn:schemas-wifialliance-org:device:WFADevice:1";
-  static const String WAN_ROUTER = "urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1";
+  static const String WIFI_ROUTER =
+      "urn:schemas-wifialliance-org:device:WFADevice:1";
+  static const String WAN_ROUTER =
+      "urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1";
 }
