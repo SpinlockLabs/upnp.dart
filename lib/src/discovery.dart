@@ -92,29 +92,21 @@ class DeviceDiscoverer {
       }
     });
 
-    try {
-      socket.joinMulticast(_v4_Multicast);
-    } on Exception catch (e) {
-      onError(e);
-    }
-
-    try {
-      socket.joinMulticast(_v6_Multicast);
-    } on Exception catch (e) {
-      onError(e);
-    }
-
     for (var interface in _interfaces) {
-      try {
-        socket.joinMulticast(_v4_Multicast, interface);
-      } on Exception catch (e) {
-        onError(e);
+      if (address.type == InternetAddressType.IPv4) {
+        try {
+          socket.joinMulticast(_v4_Multicast, interface);
+        } on Exception catch (e) {
+          onError(Exception('proto: IPv4, IF: ${interface.name}, $e'));
+        }
       }
 
-      try {
-        socket.joinMulticast(_v6_Multicast, interface);
-      } on Exception catch (e) {
-        onError(e);
+      if (address.type == InternetAddressType.IPv6) {
+        try {
+          socket.joinMulticast(_v6_Multicast, interface);
+        } on Exception catch (e) {
+          onError(Exception('proto: IPv6, IF: ${interface.name}, $e'));
+        }
       }
     }
 
