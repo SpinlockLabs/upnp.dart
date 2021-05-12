@@ -10,19 +10,28 @@ class DeviceDiscoverer {
 
   late List<NetworkInterface> _interfaces;
 
-  Future start({bool ipv4: true, bool ipv6: true}) async {
+  static _doNowt(Exception e) {}
+
+  Future start({
+    bool ipv4: true,
+    bool ipv6: true,
+    Function(Exception) onError: _doNowt,
+  }) async {
     _interfaces = await NetworkInterface.list();
 
     if (ipv4) {
-      await _createSocket(InternetAddress.anyIPv4);
+      await _createSocket(InternetAddress.anyIPv4, onError: onError);
     }
 
     if (ipv6) {
-      await _createSocket(InternetAddress.anyIPv6);
+      await _createSocket(InternetAddress.anyIPv6, onError: onError);
     }
   }
 
-  _createSocket(InternetAddress address) async {
+  _createSocket(
+    InternetAddress address, {
+    Function(Exception) onError: _doNowt,
+  }) async {
     var socket = await RawDatagramSocket.bind(address, 0);
 
     socket.broadcastEnabled = true;
@@ -80,20 +89,28 @@ class DeviceDiscoverer {
 
     try {
       socket.joinMulticast(_v4_Multicast);
-    } on OSError {}
+    } on Exception catch (e) {
+      onError(e);
+    }
 
     try {
       socket.joinMulticast(_v6_Multicast);
-    } on OSError {}
+    } on Exception catch (e) {
+      onError(e);
+    }
 
     for (var interface in _interfaces) {
       try {
         socket.joinMulticast(_v4_Multicast, interface);
-      } on OSError {}
+      } on Exception catch (e) {
+        onError(e);
+      }
 
       try {
         socket.joinMulticast(_v6_Multicast, interface);
-      } on OSError {}
+      } on Exception catch (e) {
+        onError(e);
+      }
     }
 
     _sockets.add(socket);
