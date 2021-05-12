@@ -12,29 +12,33 @@ class DeviceDiscoverer {
 
   static _doNowt(Exception e) {}
 
+  /// defaults to port 1900 to be able to receive broadcast notifications
+  /// and not just M-SEARCH replies.
   Future start({
     bool ipv4: true,
     bool ipv6: true,
     Function(Exception) onError: _doNowt,
+    int port: 1900,
   }) async {
     _interfaces = await NetworkInterface.list();
 
     if (ipv4) {
-      await _createSocket(InternetAddress.anyIPv4, onError: onError);
+      await _createSocket(InternetAddress.anyIPv4, port, onError: onError);
     }
 
     if (ipv6) {
-      await _createSocket(InternetAddress.anyIPv6, onError: onError);
+      await _createSocket(InternetAddress.anyIPv6, port, onError: onError);
     }
   }
 
   _createSocket(
-    InternetAddress address, {
+    InternetAddress address,
+    int port, {
     Function(Exception) onError: _doNowt,
   }) async {
     var socket = await RawDatagramSocket.bind(
       address,
-      0,
+      port,
       reuseAddress: true,
       reusePort: true,
     );
