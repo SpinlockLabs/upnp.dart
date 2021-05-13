@@ -168,7 +168,7 @@ class DeviceDiscoverer {
     var sub = clients.listen((client) => list.add(client));
 
     if (_sockets.isEmpty) {
-      await start();
+      await start(port: 0);
     }
 
     search();
@@ -186,7 +186,7 @@ class DeviceDiscoverer {
       String? query,
       bool unique: true}) async* {
     if (_sockets.isEmpty) {
-      await start();
+      await start(port: 0);
     }
 
     var seen = new Set<String?>();
