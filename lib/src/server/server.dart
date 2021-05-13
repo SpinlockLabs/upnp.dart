@@ -1,7 +1,8 @@
 part of upnp.server;
 
 class UpnpServer {
-  static final ContentType _xmlType = ContentType.parse('text/xml; charset="utf-8"');
+  static final ContentType _xmlType =
+      ContentType.parse('text/xml; charset="utf-8"');
 
   final UpnpHostDevice device;
 
@@ -58,16 +59,16 @@ class UpnpServer {
   }
 
   Future handleControlRequest(HttpRequest request) async {
-    var bytes = await request.fold(
-      <int>[], (List<int> a, List<int> b) => a..addAll(b)
-    );
-    var xml = XML.parse(utf8.decode(bytes));
+    var bytes =
+        await request.fold(<int>[], (List<int> a, List<int> b) => a..addAll(b));
+    var xml = XmlDocument.parse(utf8.decode(bytes));
     var root = xml.rootElement;
     var body = root.firstChild;
     var service = device.findService(request.uri.pathSegments.last);
 
     if (service == null) {
-      service = device.findService(Uri.decodeComponent(request.uri.pathSegments.last));
+      service = device
+          .findService(Uri.decodeComponent(request.uri.pathSegments.last));
     }
 
     if (service == null) {
@@ -77,11 +78,13 @@ class UpnpServer {
       return;
     }
 
-    for (XML.XmlNode node in body.children) {
-      if (node is XML.XmlElement) {
+    for (XmlNode node in body!.children) {
+      if (node is XmlElement) {
         var name = node.name.local;
-        var act = service.actions.firstWhere((x) => x.name == name, orElse: () => null);
-        if (act == null) {
+        UpnpHostAction act;
+        try {
+          act = service.actions.firstWhere((x) => x.name == name);
+        } catch (e) {
           request.response
             ..statusCode = HttpStatus.badRequest
             ..close();
@@ -90,7 +93,7 @@ class UpnpServer {
 
         if (act.handler != null) {
           // TODO(kaendfinger): make this have inputs and outputs.
-          await act.handler({});
+          await act.handler!({});
           request.response
             ..statusCode = HttpStatus.ok
             ..close();

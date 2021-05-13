@@ -1,46 +1,47 @@
 part of upnp.server;
 
 class UpnpHostDevice {
-  final String deviceType;
-  final String friendlyName;
-  final String manufacturer;
-  final String manufacturerUrl;
-  final String modelName;
-  final String modelDescription;
-  final String modelNumber;
-  final String modelUrl;
-  final String udn;
-  final String serialNumber;
-  final String presentationUrl;
-  final String upc;
+  final String? deviceType;
+  final String? friendlyName;
+  final String? manufacturer;
+  final String? manufacturerUrl;
+  final String? modelName;
+  final String? modelDescription;
+  final String? modelNumber;
+  final String? modelUrl;
+  final String? udn;
+  final String? serialNumber;
+  final String? presentationUrl;
+  final String? upc;
 
   List<UpnpHostIcon> icons = <UpnpHostIcon>[];
   List<UpnpHostService> services = <UpnpHostService>[];
 
-  UpnpHostDevice({
-    this.deviceType,
-    this.friendlyName,
-    this.manufacturer,
-    this.manufacturerUrl,
-    this.modelName,
-    this.modelNumber,
-    this.modelDescription,
-    this.modelUrl,
-    this.serialNumber,
-    this.presentationUrl,
-    this.udn,
-    this.upc
-  });
+  UpnpHostDevice(
+      {this.deviceType,
+      this.friendlyName,
+      this.manufacturer,
+      this.manufacturerUrl,
+      this.modelName,
+      this.modelNumber,
+      this.modelDescription,
+      this.modelUrl,
+      this.serialNumber,
+      this.presentationUrl,
+      this.udn,
+      this.upc});
 
-  UpnpHostService findService(String name) {
-    return services.firstWhere(
-      (service) => service.simpleName == name || service.id == name,
-      orElse: () => null
-    );
+  UpnpHostService? findService(String? name) {
+    try {
+      return services.firstWhere(
+          (service) => service.simpleName == name || service.id == name);
+    } catch (e) {
+      return null;
+    }
   }
 
-  XML.XmlNode toRootXml({String urlBase}) {
-    var x = new XML.XmlBuilder();
+  XmlNode toRootXml({String? urlBase}) {
+    var x = new XmlBuilder();
     x.element("root", nest: () {
       x.namespace("urn:schemas-upnp-org:device-1-0");
       x.element("specVersion", nest: () {
@@ -108,9 +109,9 @@ class UpnpHostDevice {
         x.element("serviceList", nest: () {
           for (var service in services) {
             x.element("service", nest: () {
-              var svcName = service.simpleName == null ?
-                Uri.encodeComponent(service.id) :
-                service.simpleName;
+              var svcName = service.simpleName == null
+                  ? Uri.encodeComponent(service.id!)
+                  : service.simpleName;
               x.element("serviceType", nest: service.type);
               x.element("serviceId", nest: service.id);
               x.element("controlURL", nest: "/upnp/control/${svcName}");
@@ -121,20 +122,20 @@ class UpnpHostDevice {
         });
       });
     });
-    return x.build();
+    return x.buildDocument();
   }
 }
 
 class UpnpHostIcon {
-  final String mimetype;
-  final int width;
-  final int height;
-  final int depth;
-  final String url;
+  final String? mimetype;
+  final int? width;
+  final int? height;
+  final int? depth;
+  final String? url;
 
   UpnpHostIcon({this.mimetype, this.width, this.height, this.depth, this.url});
 
-  void applyToXml(XML.XmlBuilder builder) {
+  void applyToXml(XmlBuilder builder) {
     builder.element("icon", nest: () {
       if (mimetype != null) {
         builder.element("mimetype", nest: mimetype);

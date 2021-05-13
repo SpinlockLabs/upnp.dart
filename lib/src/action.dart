@@ -1,8 +1,8 @@
 part of upnp;
 
 class Action {
-  Service service;
-  String name;
+  late Service service;
+  String? name;
   List<ActionArgument> arguments = [];
 
   Action();
@@ -18,14 +18,12 @@ class Action {
       }
 
       var direction = XmlUtils.getTextSafe(argdef, "direction");
-      var relatedStateVariable = XmlUtils.getTextSafe(
-        argdef,
-        "relatedStateVariable"
-      );
+      var relatedStateVariable =
+          XmlUtils.getTextSafe(argdef, "relatedStateVariable");
       var isRetVal = direction == "out";
 
-      if (this.name.startsWith("Get")) {
-        var of = this.name.substring(3);
+      if (this.name!.startsWith("Get")) {
+        var of = this.name!.substring(3);
         if (of == name) {
           isRetVal = true;
         }
@@ -35,55 +33,52 @@ class Action {
         name = name.substring(3);
       }
 
-      arguments.add(
-        new ActionArgument(
-          this,
-          name,
-          direction,
-          relatedStateVariable,
-          isRetVal
-        )
-      );
+      arguments.add(new ActionArgument(
+          this, name, direction, relatedStateVariable, isRetVal));
     }
 
     var argumentLists = e.findElements("argumentList");
     if (argumentLists.isNotEmpty) {
       var argList = argumentLists.first;
-      if (argList.children.any((x) => x is XmlElement && x.name.local == "name")) {
+      if (argList.children
+          .any((x) => x is XmlElement && x.name.local == "name")) {
         // Bad UPnP Implementation fix for WeMo
         addArgDef(argList, true);
       } else {
         for (var argdef in argList.children.where((it) => it is XmlElement)) {
-          addArgDef(argdef);
+          addArgDef(argdef as XmlElement);
         }
       }
     }
   }
 
   Future<Map<String, String>> invoke(Map<String, dynamic> args) async {
-    var param = '  <u:${name} xmlns:u="${service.type}">' + args.keys.map((it) {
-      String argsIt = args[it].toString();
-      argsIt = argsIt.replaceAll("&", "&amp;");
-      return "<${it}>${argsIt}</${it}>";
-    }).join("\n") + '</u:${name}>\n';
+    var param = '  <u:${name} xmlns:u="${service.type}">' +
+        args.keys.map((it) {
+          String argsIt = args[it].toString();
+          argsIt = argsIt.replaceAll("&", "&amp;");
+          return "<${it}>${argsIt}</${it}>";
+        }).join("\n") +
+        '</u:${name}>\n';
 
     var result = await service.sendToControlUrl(name, param);
-    var doc = xml.parse(result);
-    XmlElement response = doc
-      .rootElement;
+    var doc = XmlDocument.parse(result);
+    XmlElement response = doc.rootElement;
 
     if (response.name.local != "Body") {
-      response = response.children.firstWhere((x) => x is XmlElement);
+      response =
+          response.children.firstWhere((x) => x is XmlElement) as XmlElement;
     }
 
-    if (const bool.fromEnvironment("upnp.action.show_response", defaultValue: false)) {
+    if (const bool.fromEnvironment("upnp.action.show_response",
+        defaultValue: false)) {
       print("Got Action Response: ${response.toXmlString()}");
     }
 
-    if (response is XmlElement
-      && !response.name.local.contains("Response") &&
-      response.children.length > 1) {
-      response = response.children[1];
+    if (response is XmlElement &&
+        !response.name.local.contains("Response") &&
+        response.children.length > 1) {
+      response = response.children[1] as XmlElement;
     }
 
     if (response.children.length == 1) {
@@ -96,13 +91,13 @@ class Action {
       }
     }
 
-    if (const bool.fromEnvironment("upnp.action.show_response", defaultValue: false)) {
+    if (const bool.fromEnvironment("upnp.action.show_response",
+        defaultValue: false)) {
       print("Got Action Response (Real): ${response.toXmlString()}");
     }
 
-    List<XmlElement> results = response.children
-      .whereType<XmlElement>()
-      .toList();
+    List<XmlElement> results =
+        response.children.whereType<XmlElement>().toList();
     var map = <String, String>{};
     for (XmlElement r in results) {
       map[r.name.local] = r.text;
@@ -112,9 +107,9 @@ class Action {
 }
 
 class StateVariable {
-  Service service;
-  String name;
-  String dataType;
+  late Service service;
+  String? name;
+  String? dataType;
   dynamic defaultValue;
   bool doesSendEvents = false;
 
@@ -123,43 +118,35 @@ class StateVariable {
   StateVariable.fromXml(XmlElement e) {
     name = XmlUtils.getTextSafe(e, "name");
     dataType = XmlUtils.getTextSafe(e, "dataType");
-    defaultValue = XmlUtils.asValueType(
-      XmlUtils.getTextSafe(e, "defaultValue"),
-      dataType
-    );
+    defaultValue =
+        XmlUtils.asValueType(XmlUtils.getTextSafe(e, "defaultValue"), dataType);
     doesSendEvents = e.getAttribute("sendEvents") == "yes";
   }
 
   String getGenericId() {
-    return sha1.convert(utf8.encode(
-      "${service.device.uuid}::${service.id}::${name}"
-    )).toString();
+    return sha1
+        .convert(utf8.encode("${service.device!.uuid}::${service.id}::${name}"))
+        .toString();
   }
 }
 
 class ActionArgument {
   final Action action;
-  final String name;
-  final String direction;
-  final String relatedStateVariable;
+  final String? name;
+  final String? direction;
+  final String? relatedStateVariable;
   final bool isRetVal;
 
-  ActionArgument(
-    this.action,
-    this.name,
-    this.direction,
-    this.relatedStateVariable,
-    this.isRetVal);
+  ActionArgument(this.action, this.name, this.direction,
+      this.relatedStateVariable, this.isRetVal);
 
-  StateVariable getStateVariable() {
+  StateVariable? getStateVariable() {
     if (relatedStateVariable != null) {
       return null;
     }
 
-    Iterable<StateVariable> vars = action
-      .service
-      .stateVariables
-      .where((x) => x.name == relatedStateVariable);
+    Iterable<StateVariable> vars = action.service.stateVariables
+        .where((x) => x.name == relatedStateVariable);
 
     if (vars.isNotEmpty) {
       return vars.first;

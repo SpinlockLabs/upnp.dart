@@ -3,8 +3,9 @@ version: 2.0.1
 description: Universal Plugin and Play Host/Client
 homepage: https://github.com/SpinlockLabs/upnp.dart
 dependencies:
-  xml: "^4.5.1"
-  crypto: "^2.1.5"
+  xml: "^5.1.0"
+  crypto: "^3.0.1"
+  collection: ^1.15.0-nullsafety.4
 environment:
-  sdk: ">=2.0.0 <3.0.0"
+  sdk: '>=2.12.0 <3.0.0'
 
