@@ -219,20 +219,16 @@ class DeviceDiscoverer {
         }).toList();
         var location = deviceClients.first.location;
         var serviceTypes = deviceClients.map((it) => it.st).toSet().toList();
-        var device = new DiscoveredDevice();
-        device.serviceTypes = serviceTypes;
-        device.uuid = uuid;
-        device.location = location;
+        var device = new DiscoveredDevice(
+            serviceTypes: serviceTypes, uuid: uuid, location: location);
         if (type == null || serviceTypes.contains(type)) {
           devices.add(device);
         }
       }
 
       for (var client in clients.where((it) => it.usn.isEmpty)) {
-        var device = new DiscoveredDevice();
-        device.serviceTypes = [client.st];
-        device.uuid = null;
-        device.location = client.location;
+        var device = DiscoveredDevice(
+            serviceTypes: [client.st], uuid: '', location: client.location);
         if (type == null || device.serviceTypes.contains(type)) {
           devices.add(device);
         }
@@ -266,16 +262,19 @@ class DeviceDiscoverer {
 }
 
 class DiscoveredDevice {
-  List<String> serviceTypes = [];
-  String? uuid;
-  String? location;
+  final List<String> serviceTypes;
+  final String uuid;
+  final String location;
+
+  DiscoveredDevice(
+      {required this.serviceTypes, required this.uuid, required this.location});
 
   Future<Device> getRealDevice() async {
     HttpClientResponse response;
 
     try {
       var request = await UpnpCommon.httpClient
-          .getUrl(Uri.parse(location!))
+          .getUrl(Uri.parse(location))
           .timeout(const Duration(seconds: 5),
               onTimeout:
                   (() => null) as FutureOr<HttpClientRequest> Function()?);
