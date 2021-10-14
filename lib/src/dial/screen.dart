@@ -17,7 +17,7 @@ class DialScreen {
       ids.add(client.usn);
 
       try {
-        var dev = await (client.getDevice() as FutureOr<Device>);
+        var dev = await client.getDevice();
         yield new DialScreen(
           Uri.parse(Uri.parse(client.location!).origin),
           dev.friendlyName

@@ -120,7 +120,6 @@ class _UpnpDemoState extends State<UpnpDemoPage> {
         if (!snapshot.hasData) {
           return const Text('Looking for router...');
         }
-        print('frog $snapshot');
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[

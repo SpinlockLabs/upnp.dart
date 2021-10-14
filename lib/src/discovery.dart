@@ -267,10 +267,6 @@ class DeviceDiscoverer {
     for (var result in results) {
       try {
         var device = await result.getRealDevice();
-
-        if (device == null) {
-          continue;
-        }
         list.add(device);
       } on ArgumentError {
       } catch (e) {
