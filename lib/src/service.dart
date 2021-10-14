@@ -10,21 +10,21 @@ const String _SOAP_BODY = """
 """;
 
 class ServiceDescription {
-  String? type;
-  String? id;
-  String? controlUrl;
-  String? eventSubUrl;
+  String type;
+  String id;
+  String controlUrl;
+  String eventSubUrl;
   String? scpdUrl;
 
-  ServiceDescription.fromXml(Uri uriBase, XmlElement service) {
-    type = XmlUtils.getTextSafe(service, "serviceType")!.trim();
-    id = XmlUtils.getTextSafe(service, "serviceId")!.trim();
+  ServiceDescription.fromXml(Uri uriBase, XmlElement service) :
+    type = XmlUtils.getTextSafe(service, "serviceType")!.trim(),
+    id = XmlUtils.getTextSafe(service, "serviceId")!.trim(),
     controlUrl = uriBase.resolve(
       XmlUtils.getTextSafe(service, "controlURL")!.trim()
-    ).toString();
+    ).toString(),
     eventSubUrl = uriBase.resolve(
       XmlUtils.getTextSafe(service, "eventSubURL")!.trim()
-    ).toString();
+    ).toString() {
 
     var m = XmlUtils.getTextSafe(service, "SCPDURL");
 
@@ -108,13 +108,13 @@ class ServiceDescription {
 
 class Service {
   final Device? device;
-  final String? type;
-  final String? id;
+  final String type;
+  final String id;
   final List<Action> actions;
   final List<StateVariable> stateVariables;
 
-  String? controlUrl;
-  String? eventSubUrl;
+  String controlUrl;
+  String eventSubUrl;
   String? scpdUrl;
 
   Service(
@@ -127,16 +127,16 @@ class Service {
     this.actions,
     this.stateVariables);
 
-  List<String?> get actionNames => actions.map((x) => x.name).toList();
+  List<String> get actionNames => actions.map((x) => x.name).toList();
 
-  Future<String> sendToControlUrl(String? name, String param) async {
+  Future<String> sendToControlUrl(String name, String param) async {
     var body = _SOAP_BODY.replaceAll("{param}", param);
 
     if (const bool.fromEnvironment("upnp.debug.control", defaultValue: false)) {
       print("Send to ${controlUrl} (SOAPACTION: ${type}#${name}): ${body}");
     }
 
-    var request = await UpnpCommon.httpClient.postUrl(Uri.parse(controlUrl!));
+    var request = await UpnpCommon.httpClient.postUrl(Uri.parse(controlUrl));
     request.headers.set("SOAPACTION", '"${type}#${name}"');
     request.headers.set("Content-Type", 'text/xml; charset="utf-8"');
     request.headers.set("User-Agent", 'CyberGarage-HTTP/1.0');

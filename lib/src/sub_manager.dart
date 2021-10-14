@@ -62,7 +62,7 @@ class StateSubscriptionManager {
   }
 
   Stream<dynamic> subscribeToService(Service service) {
-    var id = sha256.convert(utf8.encode(service.eventSubUrl!)).toString();
+    var id = sha256.convert(utf8.encode(service.eventSubUrl)).toString();
     StateSubscription? sub = _subs[id];
     if (sub == null) {
       sub = _subs[id] = new StateSubscription();

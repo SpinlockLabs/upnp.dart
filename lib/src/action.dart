@@ -2,13 +2,13 @@ part of upnp;
 
 class Action {
   late Service service;
-  String? name;
+  String name;
   List<ActionArgument> arguments = [];
 
-  Action();
+  Action() : name = 'unknown';
 
-  Action.fromXml(XmlElement e) {
-    name = XmlUtils.getTextSafe(e, "name");
+  Action.fromXml(XmlElement e) : name = XmlUtils.getTextSafe(e, "name") ?? 'unknown'{
+
 
     addArgDef(XmlElement argdef, [bool stripPrefix = false]) {
       var name = XmlUtils.getTextSafe(argdef, "name");
@@ -24,8 +24,8 @@ class Action {
       );
       var isRetVal = direction == "out";
 
-      if (this.name!.startsWith("Get")) {
-        var of = this.name!.substring(3);
+      if (this.name.startsWith("Get")) {
+        var of = this.name.substring(3);
         if (of == name) {
           isRetVal = true;
         }
