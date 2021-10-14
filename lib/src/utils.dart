@@ -26,6 +26,15 @@ class XmlUtils {
     return elements.first.text;
   }
 
+  static String getTextDefault(XmlElement node, String name) {
+    var elements = node.findElements(name);
+    if (elements.isEmpty) {
+      return '';
+    }
+    return elements.first.text;
+  }
+
+
   static String unescape(String input) {
     return input.replaceAll("&gt;", ">").replaceAll("&lt;", "<");
   }

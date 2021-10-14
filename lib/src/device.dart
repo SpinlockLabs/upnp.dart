@@ -3,32 +3,48 @@ part of upnp;
 class Device {
   late XmlElement deviceElement;
 
-  String? deviceType;
-  String? urlBase;
-  String? friendlyName;
-  String? manufacturer;
-  String? modelName;
-  String? udn;
-  String? uuid;
-  String? url;
-  String? presentationUrl;
-  String? modelType;
-  String? modelDescription;
-  String? modelNumber;
-  String? manufacturerUrl;
+  String deviceType;
+  String urlBase;
+  String friendlyName;
+  String manufacturer;
+  String modelName;
+  String udn;
+  String uuid;
+  String url;
+  String presentationUrl;
+  String modelType;
+  String modelDescription;
+  String manufacturerUrl;
 
   List<UpnpIcon> icons = [];
   List<ServiceDescription> services = [];
 
   List<String?> get serviceNames => services.map((x) => x.id).toList();
 
-  void loadFromXml(String? u, XmlElement e) {
-    url = u;
-    deviceElement = e;
+  Device._(
+      {required this.deviceElement,
+      required this.modelDescription,
+      required this.modelName,
+      required this.manufacturer,
+      required this.friendlyName,
+      required this.url,
+      required this.deviceType,
+      required this.icons,
+      required this.manufacturerUrl,
+      required this.modelType,
+      required this.presentationUrl,
+      required this.services,
+      required this.udn,
+      required this.urlBase,
+      required this.uuid});
+
+  factory Device.loadFromXml(String? u, XmlElement e) {
+    var url = u;
+    var deviceElement = e;
 
     var uri = Uri.parse(url!);
 
-    urlBase = XmlUtils.getTextSafe(deviceElement, "URLBase");
+    var urlBase = XmlUtils.getTextSafe(deviceElement, "URLBase");
 
     if (urlBase == null) {
       urlBase = uri.toString();
@@ -40,30 +56,32 @@ class Device {
 
     var deviceNode = XmlUtils.getElementByName(deviceElement, "device");
 
-    deviceType = XmlUtils.getTextSafe(deviceNode, "deviceType");
-    friendlyName = XmlUtils.getTextSafe(deviceNode, "friendlyName");
-    modelName = XmlUtils.getTextSafe(deviceNode, "modelName");
-    manufacturer = XmlUtils.getTextSafe(deviceNode, "manufacturer");
-    udn = XmlUtils.getTextSafe(deviceNode, "UDN");
-    presentationUrl = XmlUtils.getTextSafe(deviceNode, "presentationURL");
-    modelType = XmlUtils.getTextSafe(deviceNode, "modelType");
-    modelDescription = XmlUtils.getTextSafe(deviceNode, "modelDescription");
-    manufacturerUrl = XmlUtils.getTextSafe(deviceNode, "manufacturerURL");
-
-    if (udn != null) {
-      uuid = udn!.substring("uuid:".length);
-    }
+    var deviceType = XmlUtils.getTextDefault(deviceNode, "deviceType");
+    var friendlyName = XmlUtils.getTextDefault(deviceNode, "friendlyName");
+    var modelName = XmlUtils.getTextDefault(deviceNode, "modelName");
+    var manufacturer = XmlUtils.getTextDefault(deviceNode, "manufacturer");
+    var udn = XmlUtils.getTextDefault(deviceNode, "UDN");
+    var presentationUrl =
+        XmlUtils.getTextDefault(deviceNode, "presentationURL");
+    var modelType = XmlUtils.getTextDefault(deviceNode, "modelType");
+    var modelDescription =
+        XmlUtils.getTextDefault(deviceNode, "modelDescription");
+    var manufacturerUrl =
+        XmlUtils.getTextDefault(deviceNode, "manufacturerURL");
+    var uuid = udn.substring("uuid:".length);
+    List<UpnpIcon> icons = [];
+    List<ServiceDescription> services = [];
 
     if (deviceNode.findElements("iconList").isNotEmpty) {
       var iconList = deviceNode.findElements("iconList").first;
       for (var child in iconList.children) {
         if (child is XmlElement) {
-          var icon = new UpnpIcon();
-          icon.mimetype = XmlUtils.getTextSafe(child, "mimetype");
+          var icon = new UpnpIcon(
+              mimetype: XmlUtils.getTextSafe(child, "mimetype") ?? '',
+              url: XmlUtils.getTextSafe(child, "url") ?? '');
           var width = XmlUtils.getTextSafe(child, "width");
           var height = XmlUtils.getTextSafe(child, "height");
           var depth = XmlUtils.getTextSafe(child, "depth");
-          var url = XmlUtils.getTextSafe(child, "url");
           if (width != null) {
             icon.width = int.parse(width);
           }
@@ -83,7 +101,7 @@ class Device {
       }
     }
 
-    Uri baseUri = Uri.parse(urlBase!);
+    Uri baseUri = Uri.parse(urlBase);
 
     processDeviceNode(XmlElement e) {
       if (e.findElements("serviceList").isNotEmpty) {
@@ -106,11 +124,28 @@ class Device {
     }
 
     processDeviceNode(deviceNode);
+
+    return Device._(
+        uuid: uuid,
+        udn: udn,
+        url: url,
+        urlBase: urlBase,
+        deviceElement: deviceElement,
+        deviceType: deviceType,
+        modelDescription: modelDescription,
+        manufacturer: manufacturer,
+        manufacturerUrl: manufacturerUrl,
+        friendlyName: friendlyName,
+        modelName: modelName,
+        icons: icons,
+        services: services,
+        presentationUrl: presentationUrl,
+        modelType: modelType);
   }
 
   Future<Service?> getService(String type) async {
-    var service = services.firstWhereOrNull(
-      (it) => it.type == type || it.id == type);
+    var service =
+        services.firstWhereOrNull((it) => it.type == type || it.id == type);
 
     if (service != null) {
       return await service.getService(this);
@@ -121,18 +156,23 @@ class Device {
 }
 
 class UpnpIcon {
-  String? mimetype;
+  String mimetype;
   int? width;
   int? height;
   int? depth;
-  String? url;
+  String url;
+
+  UpnpIcon({required this.mimetype, required this.url});
 }
 
 class CommonDevices {
   static const String DIAL = "urn:dial-multiscreen-org:service:dial:1";
   static const String CHROMECAST = DIAL;
   static const String WEMO = "urn:Belkin:device:controllee:1";
-  static const String WIFI_ROUTER = "urn:schemas-wifialliance-org:device:WFADevice:1";
-  static const String WAN_ROUTER = "urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1";
-  static const String CANON_CAMERA = "urn:schemas-canon-com:device:ICPO- CameraControlAPIService:1";
+  static const String WIFI_ROUTER =
+      "urn:schemas-wifialliance-org:device:WFADevice:1";
+  static const String WAN_ROUTER =
+      "urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1";
+  static const String CANON_CAMERA =
+      "urn:schemas-canon-com:device:ICPO- CameraControlAPIService:1";
 }
