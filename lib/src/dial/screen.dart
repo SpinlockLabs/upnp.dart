@@ -19,7 +19,7 @@ class DialScreen {
       try {
         var dev = await client.getDevice();
         yield new DialScreen(
-          Uri.parse(Uri.parse(client.location!).origin),
+          Uri.parse(Uri.parse(client.location).origin),
           dev.friendlyName
         );
       } catch (e) {
