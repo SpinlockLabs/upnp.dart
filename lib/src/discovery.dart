@@ -184,12 +184,12 @@ class DeviceDiscoverer {
 
     var seen = new Set<String?>();
 
-    if (timeout != null) {
+    if (timeout.inMicroseconds != 0) {
       search(query);
       new Future.delayed(timeout, () {
         stop();
       });
-    } else if (searchInterval != null) {
+    } else if (searchInterval.inMicroseconds != 0) {
       search(query);
       _discoverySearchTimer = new Timer.periodic(searchInterval, (_) {
         search(query);
@@ -223,7 +223,7 @@ class DeviceDiscoverer {
 
       for (var uuid in uuids) {
         var deviceClients = clients.where((client) {
-          return client != null &&
+          return
             client.usn != null &&
             client.usn!.split("::").first == uuid;
         }).toList();
@@ -302,10 +302,6 @@ class DiscoveredDevice {
       return null;
     }
 
-    if (response == null) {
-      return null;
-    }
-
     if (response.statusCode != 200) {
       throw new Exception(
         "ERROR: Failed to fetch device description."
@@ -317,7 +313,7 @@ class DiscoveredDevice {
 
     try {
       var content = await response.cast<List<int>>().transform(utf8.decoder).join();
-      doc = xml.parse(content);
+      doc = XmlDocument.parse(content);
     } on Exception catch (e) {
       throw new FormatException(
         "ERROR: Failed to parse"
@@ -381,7 +377,7 @@ class DiscoveredClient {
 
     try {
       var content = await response.cast<List<int>>().transform(utf8.decoder).join();
-      doc = xml.parse(content);
+      doc = XmlDocument.parse(content);
     } on Exception catch (e) {
       throw new FormatException(
         "ERROR: Failed to parse device"

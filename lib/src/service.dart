@@ -44,10 +44,6 @@ class ServiceDescription {
 
     var response = await request.close();
 
-    if (response == null) {
-      return null;
-    }
-
     if (response.statusCode != 200) {
       return null;
     }
@@ -57,7 +53,7 @@ class ServiceDescription {
     try {
       var content = await response.cast<List<int>>().transform(utf8.decoder).join();
       content = content.replaceAll("\u00EF\u00BB\u00BF", "");
-      doc = xml.parse(content).rootElement;
+      doc = XmlDocument.parse(content).rootElement;
     } catch (e) {
       return null;
     }
@@ -151,7 +147,7 @@ class Service {
 
     if (response.statusCode != 200) {
       try {
-        var doc = xml.parse(content);
+        var doc = XmlDocument.parse(content);
         throw new UpnpException(doc.rootElement);
       } catch (e) {
         if (e is! UpnpException) {

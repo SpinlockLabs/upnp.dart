@@ -68,7 +68,7 @@ class Action {
     }).join("\n") + '</u:${name}>\n';
 
     var result = await service.sendToControlUrl(name, param);
-    var doc = xml.parse(result);
+    var doc = XmlDocument.parse(result);
     XmlElement response = doc
       .rootElement;
 

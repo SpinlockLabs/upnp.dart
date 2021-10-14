@@ -2,8 +2,7 @@ part of upnp;
 
 class WemoHelper {
   static Map<String, dynamic> parseAttributes(String input) {
-    var doc = xml
-      .parse("<attributes>" + XmlUtils.unescape(input) + "</attributes>")
+    var doc = XmlDocument.parse("<attributes>" + XmlUtils.unescape(input) + "</attributes>")
       .rootElement;
     var attr = {};
     doc.children.whereType<XmlElement>().forEach((element) {

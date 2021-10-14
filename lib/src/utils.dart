@@ -31,10 +31,6 @@ class XmlUtils {
   }
 
   static dynamic asRichValue(String value) {
-    if (value == null) {
-      return null;
-    }
-
     if (value.toLowerCase() == "true") {
       return true;
     }

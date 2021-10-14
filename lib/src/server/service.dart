@@ -24,6 +24,6 @@ class UpnpHostService {
         }
       });
     });
-    return x.build();
+    return x.buildDocument();
   }
 }

@@ -9,7 +9,7 @@ Future printDevice(Device device) async {
     print("- URL: ${device.url}");
   }
 
-  if (device.services == null) {
+  if (device.services.isEmpty) {
     prelude();
     print("-----");
     return;
@@ -18,10 +18,6 @@ Future printDevice(Device device) async {
   var svcs = <Service?>[];
 
   for (var svc in device.services) {
-    if (svc == null) {
-      continue;
-    }
-
     var service = await svc.getService();
     svcs.add(service);
   }
@@ -98,9 +94,7 @@ main(List<String> args) async {
       return;
     }
 
-    if (device != null) {
       await printDevice(device);
-    }
   }).asFuture();
 
    UpnpCommon.httpClient.close();

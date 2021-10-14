@@ -127,7 +127,7 @@ class StateSubscription {
           _controller!.addError(e, stack);
         }
       },
-      onCancel: () => _unsub()
+      onCancel: () => _unsub(false)
     );
   }
 
@@ -137,7 +137,7 @@ class StateSubscription {
     }));
     request.response.close();
 
-    var doc = xml.parse(content);
+    var doc = XmlDocument.parse(content);
     var props = doc.rootElement.children.where((x) => x is XmlElement).toList();
     var map = <String, dynamic>{};
     for (XmlElement prop in props as Iterable<XmlElement>) {
@@ -214,7 +214,7 @@ class StateSubscription {
     var id = _getId();
     var url = await _getCallbackUrl(uri, id);
     if (url != lastCallbackUrl) {
-      await _unsub().timeout(const Duration(seconds: 10), onTimeout: () {
+      await _unsub(false).timeout(const Duration(seconds: 10), onTimeout: () {
         return null;
       });
       await _sub();
@@ -234,7 +234,6 @@ class StateSubscription {
       return null;
     } as FutureOr<HttpClientResponse> Function()?);
 
-    if (response != null) {
       if (response.statusCode != HttpStatus.ok) {
         _controller!.close();
         return;
@@ -244,7 +243,6 @@ class StateSubscription {
           _refresh();
         });
       }
-    }
   }
 
   Future<String> _getCallbackUrl(Uri uri, String id) async {
@@ -261,14 +259,10 @@ class StateSubscription {
     request.headers.set("ACCEPT", "*/*");
     request.headers.set("SID", _lastSid!);
 
-    var response = await request.close()
+    await request.close()
       .timeout(const Duration(seconds: 10), onTimeout: () {
       return null;
     } as FutureOr<HttpClientResponse> Function()?);
-
-    if (response != null) {
-      response.drain();
-    }
 
     if (_timer != null) {
       _timer!.cancel();

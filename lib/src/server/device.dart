@@ -120,7 +120,7 @@ class UpnpHostDevice {
         });
       });
     });
-    return x.build();
+    return x.buildDocument();
   }
 }
 
