@@ -18,7 +18,7 @@ class XmlUtils {
     return node.findElements(name).first;
   }
 
-  static String getTextSafe(XmlElement node, String name) {
+  static String? getTextSafe(XmlElement node, String name) {
     var elements = node.findElements(name);
     if (elements.isEmpty) {
       return null;
@@ -56,7 +56,7 @@ class XmlUtils {
     return value;
   }
 
-  static dynamic asValueType(input, String type) {
+  static dynamic asValueType(input, String? type) {
     if (input == null) {
       return null;
     }

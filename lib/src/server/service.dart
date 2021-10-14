@@ -1,9 +1,9 @@
 part of upnp.server;
 
 class UpnpHostService {
-  final String type;
-  final String id;
-  final String simpleName;
+  final String? type;
+  final String? id;
+  final String? simpleName;
 
   List<UpnpHostAction> actions = <UpnpHostAction>[];
 

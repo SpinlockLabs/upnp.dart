@@ -2,8 +2,8 @@ part of upnp.server;
 
 class UpnpHostUtils {
   static Future<String> getCurrentIp() async {
-    var ip = const String.fromEnvironment("upnp.host.ip", defaultValue: null);
-    if (ip != null) {
+    var ip = const String.fromEnvironment("upnp.host.ip", defaultValue: '');
+    if (ip != '') {
       return ip;
     }
 

@@ -5,7 +5,7 @@ import "dart:io";
 main() async {
   await for (var router in Router.findAll()) {
     var address = await router.getExternalIpAddress();
-    print("Router ${Uri.parse(router.device.url).host}:");
+    print("Router ${Uri.parse(router.device!.url!).host}:");
     print("  External IP Address: ${address}");
     var totalBytesSent = await router.getTotalBytesSent();
     print("  Total Bytes Sent: ${totalBytesSent} bytes");

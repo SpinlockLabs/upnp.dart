@@ -15,7 +15,7 @@ class WemoHelper {
 
       attr[name] = value;
     });
-    return attr;
+    return attr as Map<String, dynamic>;
   }
 
   static String encodeAttributes(Map<String, dynamic> attr) {

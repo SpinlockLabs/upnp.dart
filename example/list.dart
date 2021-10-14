@@ -15,7 +15,7 @@ Future printDevice(Device device) async {
     return;
   }
 
-  var svcs = <Service>[];
+  var svcs = <Service?>[];
 
   for (var svc in device.services) {
     if (svc == null) {
@@ -83,7 +83,7 @@ main(List<String> args) async {
   await discoverer
     .quickDiscoverClients()
     .listen((DiscoveredClient client) async {
-    Device device;
+    Device? device;
 
     try {
       device = await client.getDevice();
@@ -103,5 +103,5 @@ main(List<String> args) async {
     }
   }).asFuture();
 
-  await UpnpCommon.httpClient.close();
+   UpnpCommon.httpClient.close();
 }

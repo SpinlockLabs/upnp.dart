@@ -6,6 +6,7 @@ import "dart:io";
 
 import "package:xml/xml.dart" hide parse;
 import "package:xml/xml.dart" as xml show parse;
+import 'package:collection/collection.dart' show IterableExtension;
 
 import "package:crypto/crypto.dart";
 

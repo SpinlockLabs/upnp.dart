@@ -7,12 +7,12 @@ void main() {
     return devices.where((it) => it.modelName == "CoffeeMaker");
   }).then((devices) {
     for (var device in devices) {
-      Service service;
+      Service? service;
       device.getService("urn:Belkin:service:deviceevent:1").then((_) {
         service = _;
-        return service.invokeAction("GetAttributes", {});
+        return service!.invokeAction("GetAttributes", {});
       }).then((result) {
-        var attributes = WemoHelper.parseAttributes(result["attributeList"]);
+        var attributes = WemoHelper.parseAttributes(result["attributeList"]!);
         var brewing = attributes["Brewing"];
         var brewed = attributes["Brewed"];
         var mode = attributes["Mode"];
