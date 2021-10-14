@@ -1,5 +1,5 @@
 name: upnp
-version: 2.0.1
+version: 3.0.1
 description: Universal Plugin and Play Host/Client
 homepage: https://github.com/SpinlockLabs/upnp.dart
 dependencies:
