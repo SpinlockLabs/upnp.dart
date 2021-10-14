@@ -10,7 +10,7 @@ class DeviceDiscoverer {
 
   late List<NetworkInterface> _interfaces;
 
-  Future start({bool ipv4: true, bool ipv6: true}) async {
+  Future<bool> start({bool ipv4: true, bool ipv6: true}) async {
     _interfaces = await NetworkInterface.list();
 
     if (ipv4) {
@@ -20,6 +20,7 @@ class DeviceDiscoverer {
     if (ipv6) {
       await _createSocket(InternetAddress.anyIPv6);
     }
+    return true;
   }
 
   _createSocket(InternetAddress address) async {
@@ -288,7 +289,7 @@ class DiscoveredDevice {
   String? uuid;
   String? location;
 
-  Future<Device?> getRealDevice() async {
+  Future<Device> getRealDevice() async {
     HttpClientResponse response;
 
     try {
@@ -299,7 +300,7 @@ class DiscoveredDevice {
 
       response = await request.close();
     } catch (_) {
-      return null;
+      throw Exception("ERROR: failed to get the url $location within the timeout");
     }
 
     if (response.statusCode != 200) {
@@ -351,13 +352,13 @@ class DiscoveredClient {
     return buff.toString();
   }
 
-  Future<Device?> getDevice() async {
+  Future<Device> getDevice() async {
     Uri uri;
 
     try {
       uri = Uri.parse(location!);
     } catch (e) {
-      return null;
+      throw Exception("ERROR: failed to parse the $location as a uri");
     }
 
     var request = await UpnpCommon.httpClient

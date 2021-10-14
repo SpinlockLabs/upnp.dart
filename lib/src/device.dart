@@ -17,7 +17,7 @@ class Device {
   String? modelNumber;
   String? manufacturerUrl;
 
-  List<Icon> icons = [];
+  List<UpnpIcon> icons = [];
   List<ServiceDescription> services = [];
 
   List<String?> get serviceNames => services.map((x) => x.id).toList();
@@ -58,7 +58,7 @@ class Device {
       var iconList = deviceNode.findElements("iconList").first;
       for (var child in iconList.children) {
         if (child is XmlElement) {
-          var icon = new Icon();
+          var icon = new UpnpIcon();
           icon.mimetype = XmlUtils.getTextSafe(child, "mimetype");
           var width = XmlUtils.getTextSafe(child, "width");
           var height = XmlUtils.getTextSafe(child, "height");
@@ -120,7 +120,7 @@ class Device {
   }
 }
 
-class Icon {
+class UpnpIcon {
   String? mimetype;
   int? width;
   int? height;
