@@ -134,4 +134,5 @@ class CommonDevices {
   static const String WEMO = "urn:Belkin:device:controllee:1";
   static const String WIFI_ROUTER = "urn:schemas-wifialliance-org:device:WFADevice:1";
   static const String WAN_ROUTER = "urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1";
+  static const String CANON_CAMERA = "urn:schemas-canon-com:device:ICPO- CameraControlAPIService:1";
 }
