@@ -6,11 +6,11 @@ final InternetAddress _v6_Multicast = new InternetAddress("FF05::C");
 class DeviceDiscoverer {
   List<RawDatagramSocket> _sockets = <RawDatagramSocket>[];
   StreamController<DiscoveredClient> _clientController =
-    new StreamController.broadcast();
+      new StreamController.broadcast();
 
-  List<NetworkInterface> _interfaces;
+  late List<NetworkInterface> _interfaces;
 
-  Future start({bool ipv4: true, bool ipv6: true}) async {
+  Future<bool> start({bool ipv4: true, bool ipv6: true}) async {
     _interfaces = await NetworkInterface.list();
 
     if (ipv4) {
@@ -20,6 +20,7 @@ class DeviceDiscoverer {
     if (ipv6) {
       await _createSocket(InternetAddress.anyIPv6);
     }
+    return true;
   }
 
   _createSocket(InternetAddress address) async {
@@ -45,11 +46,11 @@ class DeviceDiscoverer {
           parts.removeWhere((x) => x.trim().isEmpty);
           var firstLine = parts.removeAt(0);
 
-          if (
-            (firstLine.toLowerCase().trim() == "HTTP/1.1 200 OK".toLowerCase()) ||
-            (firstLine.toLowerCase().trim() == "NOTIFY * HTTP/1.1".toLowerCase())) {
+          if ((firstLine.toLowerCase().trim() ==
+                  "HTTP/1.1 200 OK".toLowerCase()) ||
+              (firstLine.toLowerCase().trim() ==
+                  "NOTIFY * HTTP/1.1".toLowerCase())) {
             var headers = <String, String>{};
-            var client = new DiscoveredClient();
 
             for (var part in parts) {
               var hp = part.split(":");
@@ -62,11 +63,12 @@ class DeviceDiscoverer {
               return;
             }
 
-            client.st = headers["ST"];
-            client.usn = headers["USN"];
-            client.location = headers["LOCATION"];
-            client.server = headers["SERVER"];
-            client.headers = headers;
+            var client = DiscoveredClient(
+                st: headers["ST"] ?? '',
+                usn: headers["USN"] ?? '',
+                location: headers["LOCATION"] ?? '',
+                server: headers["SERVER"] ?? '',
+                headers: headers);
 
             _clientController.add(client);
           }
@@ -79,24 +81,20 @@ class DeviceDiscoverer {
 
     try {
       socket.joinMulticast(_v4_Multicast);
-    } on OSError {
-    }
+    } on OSError {}
 
     try {
       socket.joinMulticast(_v6_Multicast);
-    } on OSError {
-    }
+    } on OSError {}
 
     for (var interface in _interfaces) {
       try {
         socket.joinMulticast(_v4_Multicast, interface);
-      } on OSError {
-      }
+      } on OSError {}
 
       try {
         socket.joinMulticast(_v6_Multicast, interface);
-      } on OSError {
-      }
+      } on OSError {}
     }
 
     _sockets.add(socket);
@@ -104,7 +102,7 @@ class DeviceDiscoverer {
 
   void stop() {
     if (_discoverySearchTimer != null) {
-      _discoverySearchTimer.cancel();
+      _discoverySearchTimer!.cancel();
       _discoverySearchTimer = null;
     }
 
@@ -120,7 +118,7 @@ class DeviceDiscoverer {
 
   Stream<DiscoveredClient> get clients => _clientController.stream;
 
-  void search([String searchTarget]) {
+  void search([String? searchTarget]) {
     if (searchTarget == null) {
       searchTarget = "upnp:rootdevice";
     }
@@ -139,22 +137,19 @@ class DeviceDiscoverer {
       if (socket.address.type == _v4_Multicast.type) {
         try {
           socket.send(data, _v4_Multicast, 1900);
-        } on SocketException {
-        }
+        } on SocketException {}
       }
 
       if (socket.address.type == _v6_Multicast.type) {
         try {
           socket.send(data, _v6_Multicast, 1900);
-        } on SocketException {
-        }
+        } on SocketException {}
       }
     }
   }
 
-  Future<List<DiscoveredClient>> discoverClients({
-    Duration timeout: const Duration(seconds: 5)
-  }) async {
+  Future<List<DiscoveredClient>> discoverClients(
+      {Duration timeout: const Duration(seconds: 5)}) async {
     var list = <DiscoveredClient>[];
 
     var sub = clients.listen((client) => list.add(client));
@@ -170,26 +165,25 @@ class DeviceDiscoverer {
     return list;
   }
 
-  Timer _discoverySearchTimer;
+  Timer? _discoverySearchTimer;
 
-  Stream<DiscoveredClient> quickDiscoverClients({
-    Duration timeout: const Duration(seconds: 5),
-    Duration searchInterval: const Duration(seconds: 10),
-    String query,
-    bool unique: true
-  }) async* {
+  Stream<DiscoveredClient> quickDiscoverClients(
+      {Duration timeout: const Duration(seconds: 5),
+      Duration searchInterval: const Duration(seconds: 10),
+      String? query,
+      bool unique: true}) async* {
     if (_sockets.isEmpty) {
       await start();
     }
 
-    var seen = new Set<String>();
+    var seen = new Set<String?>();
 
-    if (timeout != null) {
+    if (timeout.inMicroseconds != 0) {
       search(query);
       new Future.delayed(timeout, () {
         stop();
       });
-    } else if (searchInterval != null) {
+    } else if (searchInterval.inMicroseconds != 0) {
       search(query);
       _discoverySearchTimer = new Timer.periodic(searchInterval, (_) {
         search(query);
@@ -206,46 +200,35 @@ class DeviceDiscoverer {
     }
   }
 
-  Future<List<DiscoveredDevice>> discoverDevices({
-    String type,
-    Duration timeout: const Duration(seconds: 5)
-  }) {
+  Future<List<DiscoveredDevice>> discoverDevices(
+      {String? type, Duration timeout: const Duration(seconds: 5)}) {
     return discoverClients(timeout: timeout).then((clients) {
       if (clients.isEmpty) {
         return [];
       }
 
       var uuids = clients
-        .where((client) => client.usn != null)
-        .map((client) => client.usn.split("::").first)
-        .toSet();
+          .where((client) => client.usn.isNotEmpty)
+          .map((client) => client.usn.split("::").first)
+          .toSet();
       var devices = <DiscoveredDevice>[];
 
       for (var uuid in uuids) {
         var deviceClients = clients.where((client) {
-          return client != null &&
-            client.usn != null &&
-            client.usn.split("::").first == uuid;
+          return client.usn.isNotEmpty && client.usn.split("::").first == uuid;
         }).toList();
         var location = deviceClients.first.location;
-        var serviceTypes = deviceClients
-          .map((it) => it.st)
-          .toSet()
-          .toList();
-        var device = new DiscoveredDevice();
-        device.serviceTypes = serviceTypes;
-        device.uuid = uuid;
-        device.location = location;
+        var serviceTypes = deviceClients.map((it) => it.st).toSet().toList();
+        var device = new DiscoveredDevice(
+            serviceTypes: serviceTypes, uuid: uuid, location: location);
         if (type == null || serviceTypes.contains(type)) {
           devices.add(device);
         }
       }
 
-      for (var client in clients.where((it) => it.usn == null)) {
-        var device = new DiscoveredDevice();
-        device.serviceTypes = [client.st];
-        device.uuid = null;
-        device.location = client.location;
+      for (var client in clients.where((it) => it.usn.isEmpty)) {
+        var device = DiscoveredDevice(
+            serviceTypes: [client.st], uuid: '', location: client.location);
         if (type == null || device.serviceTypes.contains(type)) {
           devices.add(device);
         }
@@ -255,21 +238,16 @@ class DeviceDiscoverer {
     });
   }
 
-  Future<List<Device>> getDevices({
-    String type,
-    Duration timeout: const Duration(seconds: 5),
-    bool silent: true
-  }) async {
+  Future<List<Device>> getDevices(
+      {String? type,
+      Duration timeout: const Duration(seconds: 5),
+      bool silent: true}) async {
     var results = await discoverDevices(type: type, timeout: timeout);
 
     var list = <Device>[];
     for (var result in results) {
       try {
         var device = await result.getRealDevice();
-
-        if (device == null) {
-          continue;
-        }
         list.add(device);
       } on ArgumentError {
       } catch (e) {
@@ -284,52 +262,50 @@ class DeviceDiscoverer {
 }
 
 class DiscoveredDevice {
-  List<String> serviceTypes = [];
-  String uuid;
-  String location;
+  final List<String> serviceTypes;
+  final String uuid;
+  final String location;
+
+  DiscoveredDevice(
+      {required this.serviceTypes, required this.uuid, required this.location});
 
   Future<Device> getRealDevice() async {
     HttpClientResponse response;
 
     try {
-      var request = await UpnpCommon.httpClient.getUrl(Uri.parse(location)).timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => null
-      );
+      var request = await UpnpCommon.httpClient
+          .getUrl(Uri.parse(location))
+          .timeout(const Duration(seconds: 5),
+              onTimeout:
+                  (() => null) as FutureOr<HttpClientRequest> Function()?);
 
       response = await request.close();
     } catch (_) {
-      return null;
-    }
-
-    if (response == null) {
-      return null;
+      throw Exception(
+          "ERROR: failed to get the url $location within the timeout");
     }
 
     if (response.statusCode != 200) {
-      throw new Exception(
-        "ERROR: Failed to fetch device description."
-          " Status Code: ${response.statusCode}"
-      );
+      throw new Exception("ERROR: Failed to fetch device description."
+          " Status Code: ${response.statusCode}");
     }
 
     XmlDocument doc;
 
     try {
-      var content = await response.cast<List<int>>().transform(utf8.decoder).join();
-      doc = xml.parse(content);
+      var content =
+          await response.cast<List<int>>().transform(utf8.decoder).join();
+      doc = XmlDocument.parse(content);
     } on Exception catch (e) {
-      throw new FormatException(
-        "ERROR: Failed to parse"
-          " device description. ${e}"
-      );
+      throw new FormatException("ERROR: Failed to parse"
+          " device description. ${e}");
     }
 
     if (doc.findAllElements("device").isEmpty) {
       throw new ArgumentError("Not SCPD Compatible");
     }
 
-    return new Device()..loadFromXml(location, doc.rootElement);
+    return new Device.loadFromXml(location, doc.rootElement);
   }
 }
 
@@ -340,18 +316,26 @@ class DiscoveredClient {
   String location;
   Map<String, String> headers;
 
-  DiscoveredClient();
+  DiscoveredClient(
+      {required this.st,
+      required this.usn,
+      required this.server,
+      required this.location,
+      required this.headers});
 
-  DiscoveredClient.fake(String loc) {
-    location = loc;
-  }
+  DiscoveredClient.fake(String loc)
+      : location = loc,
+        st = '',
+        usn = '',
+        server = '',
+        headers = {};
 
   String toString() {
     var buff = new StringBuffer();
-    buff.writeln("ST: ${st}");
-    buff.writeln("USN: ${usn}");
-    buff.writeln("SERVER: ${server}");
-    buff.writeln("LOCATION: ${location}");
+    buff.writeln("ST: $st");
+    buff.writeln("USN: $usn");
+    buff.writeln("SERVER: $server");
+    buff.writeln("LOCATION: $location");
     return buff.toString();
   }
 
@@ -361,33 +345,31 @@ class DiscoveredClient {
     try {
       uri = Uri.parse(location);
     } catch (e) {
-      return null;
+      throw Exception("ERROR: failed to parse the $location as a uri");
     }
 
     var request = await UpnpCommon.httpClient
-      .getUrl(uri)
-      .timeout(const Duration(seconds: 10));
+        .getUrl(uri)
+        .timeout(const Duration(seconds: 10));
 
     var response = await request.close();
 
     if (response.statusCode != 200) {
-      throw new Exception(
-        "ERROR: Failed to fetch device description."
-          " Status Code: ${response.statusCode}"
-      );
+      throw new Exception("ERROR: Failed to fetch device description."
+          " Status Code: ${response.statusCode}");
     }
 
     XmlDocument doc;
 
     try {
-      var content = await response.cast<List<int>>().transform(utf8.decoder).join();
-      doc = xml.parse(content);
+      var content =
+          await response.cast<List<int>>().transform(utf8.decoder).join();
+      doc = XmlDocument.parse(content);
     } on Exception catch (e) {
-      throw new FormatException(
-        "ERROR: Failed to parse device"
+      throw new FormatException("ERROR: Failed to parse device"
           " description. ${e}");
     }
 
-    return new Device()..loadFromXml(location, doc.rootElement);
+    return new Device.loadFromXml(location, doc.rootElement);
   }
 }

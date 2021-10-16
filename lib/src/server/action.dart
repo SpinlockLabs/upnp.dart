@@ -6,7 +6,7 @@ class UpnpHostAction {
   final String name;
   final List<UpnpHostActionArgument> inputs;
   final List<UpnpHostActionArgument> outputs;
-  final HostActionHandler handler;
+  final HostActionHandler? handler;
 
   UpnpHostAction(this.name, {
     this.inputs: const [],
@@ -33,7 +33,7 @@ class UpnpHostAction {
 class UpnpHostActionArgument {
   final String name;
   final bool isOutput;
-  final String relatedStateVariable;
+  final String? relatedStateVariable;
 
   UpnpHostActionArgument(this.name, this.isOutput, {this.relatedStateVariable});
 

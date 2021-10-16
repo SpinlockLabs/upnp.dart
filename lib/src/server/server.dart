@@ -61,7 +61,7 @@ class UpnpServer {
     var bytes = await request.fold(
       <int>[], (List<int> a, List<int> b) => a..addAll(b)
     );
-    var xml = XML.parse(utf8.decode(bytes));
+    var xml = XML.XmlDocument.parse(utf8.decode(bytes));
     var root = xml.rootElement;
     var body = root.firstChild;
     var service = device.findService(request.uri.pathSegments.last);
@@ -77,10 +77,10 @@ class UpnpServer {
       return;
     }
 
-    for (XML.XmlNode node in body.children) {
+    for (XML.XmlNode node in body!.children) {
       if (node is XML.XmlElement) {
         var name = node.name.local;
-        var act = service.actions.firstWhere((x) => x.name == name, orElse: () => null);
+        var act = service.actions.firstWhereOrNull((x) => x.name == name);
         if (act == null) {
           request.response
             ..statusCode = HttpStatus.badRequest
@@ -90,7 +90,7 @@ class UpnpServer {
 
         if (act.handler != null) {
           // TODO(kaendfinger): make this have inputs and outputs.
-          await act.handler({});
+          await act.handler!({});
           request.response
             ..statusCode = HttpStatus.ok
             ..close();

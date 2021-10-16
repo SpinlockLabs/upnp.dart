@@ -6,6 +6,7 @@ import "dart:io";
 import "dart:math" show Random;
 
 import "package:xml/xml.dart" as XML;
+import 'package:collection/collection.dart' show IterableExtension;
 
 part "src/server/server.dart";
 part "src/server/device.dart";

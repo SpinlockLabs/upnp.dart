@@ -14,17 +14,17 @@ class ServiceDescription {
   String id;
   String controlUrl;
   String eventSubUrl;
-  String scpdUrl;
+  String? scpdUrl;
 
-  ServiceDescription.fromXml(Uri uriBase, XmlElement service) {
-    type = XmlUtils.getTextSafe(service, "serviceType").trim();
-    id = XmlUtils.getTextSafe(service, "serviceId").trim();
+  ServiceDescription.fromXml(Uri uriBase, XmlElement service) :
+    type = XmlUtils.getTextSafe(service, "serviceType")!.trim(),
+    id = XmlUtils.getTextSafe(service, "serviceId")!.trim(),
     controlUrl = uriBase.resolve(
-      XmlUtils.getTextSafe(service, "controlURL").trim()
-    ).toString();
+      XmlUtils.getTextSafe(service, "controlURL")!.trim()
+    ).toString(),
     eventSubUrl = uriBase.resolve(
-      XmlUtils.getTextSafe(service, "eventSubURL").trim()
-    ).toString();
+      XmlUtils.getTextSafe(service, "eventSubURL")!.trim()
+    ).toString() {
 
     var m = XmlUtils.getTextSafe(service, "SCPDURL");
 
@@ -33,20 +33,16 @@ class ServiceDescription {
     }
   }
 
-  Future<Service> getService([Device device]) async {
+  Future<Service?> getService([Device? device]) async {
     if (scpdUrl == null) {
       throw new Exception("Unable to fetch service, no SCPD URL.");
     }
 
     var request = await UpnpCommon.httpClient
-      .getUrl(Uri.parse(scpdUrl))
-      .timeout(const Duration(seconds: 5), onTimeout: () => null);
+      .getUrl(Uri.parse(scpdUrl!))
+      .timeout(const Duration(seconds: 5), onTimeout: (() => null) as FutureOr<HttpClientRequest> Function()?);
 
     var response = await request.close();
-
-    if (response == null) {
-      return null;
-    }
 
     if (response.statusCode != 200) {
       return null;
@@ -57,7 +53,7 @@ class ServiceDescription {
     try {
       var content = await response.cast<List<int>>().transform(utf8.decoder).join();
       content = content.replaceAll("\u00EF\u00BB\u00BF", "");
-      doc = xml.parse(content).rootElement;
+      doc = XmlDocument.parse(content).rootElement;
     } catch (e) {
       return null;
     }
@@ -111,7 +107,7 @@ class ServiceDescription {
 }
 
 class Service {
-  final Device device;
+  final Device? device;
   final String type;
   final String id;
   final List<Action> actions;
@@ -119,7 +115,7 @@ class Service {
 
   String controlUrl;
   String eventSubUrl;
-  String scpdUrl;
+  String? scpdUrl;
 
   Service(
     this.device,
@@ -151,7 +147,7 @@ class Service {
 
     if (response.statusCode != 200) {
       try {
-        var doc = xml.parse(content);
+        var doc = XmlDocument.parse(content);
         throw new UpnpException(doc.rootElement);
       } catch (e) {
         if (e is! UpnpException) {
