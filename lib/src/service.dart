@@ -143,7 +143,7 @@ class Service {
     var request = await UpnpCommon.httpClient.postUrl(Uri.parse(controlUrl));
     request.headers.set("SOAPACTION", '"${type}#${name}"');
     request.headers.set("Content-Type", 'text/xml; charset="utf-8"');
-    request.headers.set("User-Agent", 'CyberGarage-HTTP/1.0');
+    request.headers.set("Content-Length", body.runes.length);
     request.write(body);
     var response = await request.close();
 
